@@ -817,9 +817,15 @@ function defaultTenant(id: string): Tenant {
   return {
     id,
     name: process.env.OPEN_REALTIME_TENANT_NAME ?? "Self Hosted",
-    mode: "self-hosted",
+    mode: defaultTenantMode(),
     createdAt: new Date().toISOString(),
   };
+}
+
+function defaultTenantMode(): Tenant["mode"] {
+  return process.env.OPEN_REALTIME_TENANT_MODE === "managed-cloud"
+    ? "managed-cloud"
+    : "self-hosted";
 }
 
 function slugify(value: string) {

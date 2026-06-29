@@ -34,6 +34,9 @@ BETTER_AUTH_SECRET=${{secret(43, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRST
 ORCHESTRATOR_APP_SECRET_KEY=${{secret(43, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+/")}}=
 ORCHESTRATOR_STORE_DRIVER=postgres
 POSTGRES_URL=${{Postgres.DATABASE_URL}}
+OPEN_REALTIME_TENANT_ID=self-hosted
+OPEN_REALTIME_TENANT_NAME=Self Hosted
+OPEN_REALTIME_TENANT_MODE=self-hosted
 OPEN_REALTIME_CLUSTER=railway
 OPEN_REALTIME_HOST=${{Gateway.RAILWAY_PUBLIC_DOMAIN}}
 ```
@@ -66,7 +69,7 @@ ORCHESTRATOR_APP_REGISTRY=true
 ORCHESTRATOR_APP_REGISTRY_REFRESH_MS=10000
 ORCHESTRATOR_URL=http://${{Dashboard.RAILWAY_PRIVATE_DOMAIN}}:3000
 ORCHESTRATOR_TOKEN=
-ORCHESTRATOR_TENANT_ID=
+ORCHESTRATOR_TENANT_ID=self-hosted
 ORCHESTRATOR_FLUSH_INTERVAL_MS=5000
 REDIS_URL=${{Redis.REDIS_URL}}
 REDIS_PREFIX=open-realtime
@@ -85,17 +88,17 @@ reference instead:
 ORCHESTRATOR_URL=http://${{@open-realtime/dashboard.RAILWAY_PRIVATE_DOMAIN}}:3000
 ```
 
-`ORCHESTRATOR_TOKEN` and `ORCHESTRATOR_TENANT_ID` are intentionally blank in the
-template because they are created in the dashboard after the first owner signs
-in. The gateway can boot in this temporary state for health checks, but it will
-not accept app connections until it is redeployed with a real token. After
+`ORCHESTRATOR_TOKEN` is intentionally blank in the template because it is
+created in the dashboard after the first owner signs in. The gateway can boot in
+this temporary state for health checks, but it will not accept app connections
+until it is redeployed with a real token. After
 deploying the template:
 
 1. Open the dashboard service URL.
 2. Create the first owner account.
 3. Create or select the tenant/app.
 4. Create an API token with `ingest:write` and `registry:read`.
-5. Copy the tenant ID and token into the gateway service variables.
+5. Copy the token into the gateway service variables.
 6. Redeploy the gateway.
 
 ## Optional Axiom observability
