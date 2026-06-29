@@ -2,8 +2,8 @@
 
 This repository can be published as a Railway template with four services:
 
-- `Dashboard`: Next.js orchestrator/admin app from this repo.
-- `Gateway`: Hono/WebSocket Pusher-compatible data plane from this repo.
+- `Dashboard` or `@open-realtime/dashboard`: Next.js orchestrator/admin app from this repo.
+- `Gateway` or `@open-realtime/gateway`: Hono/WebSocket Pusher-compatible data plane from this repo.
 - `Postgres`: Railway managed Postgres database.
 - `Redis`: Railway managed Redis database.
 
@@ -38,6 +38,13 @@ OPEN_REALTIME_CLUSTER=railway
 OPEN_REALTIME_HOST=${{Gateway.RAILWAY_PUBLIC_DOMAIN}}
 ```
 
+If Railway keeps the package-derived service name, use this host reference
+instead:
+
+```text
+OPEN_REALTIME_HOST=${{@open-realtime/gateway.RAILWAY_PUBLIC_DOMAIN}}
+```
+
 The dashboard config runs `pnpm migrate:postgres` as a Railway pre-deploy
 command, so the Postgres schema is updated before the Next.js app starts.
 
@@ -57,7 +64,7 @@ PORT=3001
 PUSHER_CLUSTER=railway
 ORCHESTRATOR_APP_REGISTRY=true
 ORCHESTRATOR_APP_REGISTRY_REFRESH_MS=10000
-ORCHESTRATOR_URL=https://${{Dashboard.RAILWAY_PUBLIC_DOMAIN}}
+ORCHESTRATOR_URL=http://${{Dashboard.RAILWAY_PRIVATE_DOMAIN}}:3000
 ORCHESTRATOR_TOKEN=
 ORCHESTRATOR_TENANT_ID=
 ORCHESTRATOR_FLUSH_INTERVAL_MS=5000
@@ -69,6 +76,13 @@ OBSERVABILITY_ENVIRONMENT=production
 AXIOM_TOKEN=
 AXIOM_DATASET=
 AXIOM_API_URL=https://api.axiom.co
+```
+
+If Railway keeps the package-derived service name, use this private-network
+reference instead:
+
+```text
+ORCHESTRATOR_URL=http://${{@open-realtime/dashboard.RAILWAY_PRIVATE_DOMAIN}}:3000
 ```
 
 `ORCHESTRATOR_TOKEN` and `ORCHESTRATOR_TENANT_ID` are intentionally blank in the
