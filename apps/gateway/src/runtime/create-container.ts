@@ -1,6 +1,7 @@
 import { PusherProtocolService } from "../application/pusher-protocol-service";
 import { credentialsFor } from "../application/ports/app-registry";
 import { UsageReporter } from "../application/usage-reporter";
+import { EmptyAppRegistry } from "../infrastructure/apps/empty-app-registry";
 import { HttpOrchestratorAppRegistry } from "../infrastructure/apps/http-orchestrator-app-registry";
 import { StaticAppRegistry } from "../infrastructure/apps/static-app-registry";
 import { InMemoryEventBus } from "../infrastructure/event-bus/in-memory-event-bus";
@@ -120,9 +121,10 @@ export async function createContainer(config: RuntimeConfig) {
 
 function createOrchestratorAppRegistry(config: RuntimeConfig) {
   if (!config.orchestrator.url || !config.orchestrator.token) {
-    throw new Error(
-      "ORCHESTRATOR_URL and ORCHESTRATOR_TOKEN are required when ORCHESTRATOR_APP_REGISTRY is enabled",
+    console.warn(
+      "ORCHESTRATOR_APP_REGISTRY is enabled but ORCHESTRATOR_URL or ORCHESTRATOR_TOKEN is missing. Starting with an empty app registry until the gateway is redeployed with orchestrator credentials.",
     );
+    return new EmptyAppRegistry();
   }
 
   return new HttpOrchestratorAppRegistry({

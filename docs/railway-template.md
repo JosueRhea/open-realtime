@@ -73,7 +73,9 @@ AXIOM_API_URL=https://api.axiom.co
 
 `ORCHESTRATOR_TOKEN` and `ORCHESTRATOR_TENANT_ID` are intentionally blank in the
 template because they are created in the dashboard after the first owner signs
-in. After deploying the template:
+in. The gateway can boot in this temporary state for health checks, but it will
+not accept app connections until it is redeployed with a real token. After
+deploying the template:
 
 1. Open the dashboard service URL.
 2. Create the first owner account.
