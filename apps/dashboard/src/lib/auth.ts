@@ -1,9 +1,9 @@
 import { betterAuth } from "better-auth";
 
-import { getSqliteDatabase } from "@/lib/db/sqlite";
+import { getAuthDatabase } from "@/lib/auth-database";
 
 export const auth = betterAuth({
-  database: getSqliteDatabase(),
+  database: getAuthDatabase(),
   emailAndPassword: {
     enabled: true,
   },
