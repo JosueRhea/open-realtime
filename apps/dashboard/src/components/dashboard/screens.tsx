@@ -2,6 +2,11 @@ import { CircleDot, Globe2, RadioTower, ShieldCheck } from "lucide-react";
 
 import { signInAction, signUpAction } from "@/app/actions";
 import { SetupRow } from "@/components/dashboard/ui";
+import {
+  controlPlaneDescription,
+  databaseLabel,
+  deploymentModeLabel,
+} from "@/lib/runtime-labels";
 
 export function AuthScreen() {
   return (
@@ -16,13 +21,16 @@ export function AuthScreen() {
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6b7280]">
             Create the first local owner account to manage apps, credentials,
-            webhooks, channels, and usage from the SQLite-backed orchestrator.
+            webhooks, channels, and usage from the orchestrator.
           </p>
           <div className="mt-6 grid max-w-xl gap-3 sm:grid-cols-3">
             <SetupRow icon={ShieldCheck} label="Auth" value="Better Auth" />
-            <SetupRow icon={CircleDot} label="DB" value="SQLite" />
-            <SetupRow icon={Globe2} label="Mode" value="Self-hosted" />
+            <SetupRow icon={CircleDot} label="DB" value={databaseLabel()} />
+            <SetupRow icon={Globe2} label="Mode" value={deploymentModeLabel()} />
           </div>
+          <p className="mt-3 max-w-xl text-xs leading-5 text-[#8a9099]">
+            {controlPlaneDescription()}
+          </p>
         </section>
 
         <section className="rounded-md border border-[#e7e9ec] bg-white p-5">

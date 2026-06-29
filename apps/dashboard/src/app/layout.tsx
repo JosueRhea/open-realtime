@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Open Realtime",
-  description: "Self-hosted realtime dashboard for Pusher-compatible apps",
+  description: "Realtime dashboard for Pusher-compatible apps",
 };
 
 export default function RootLayout({

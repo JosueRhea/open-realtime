@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 
 import type { DashboardRoute } from "@/components/dashboard/page-renderer";
 import type { DashboardOverview } from "@/lib/orchestrator/types";
+import { adapterLabel, databaseLabel, deploymentModeLabel } from "@/lib/runtime-labels";
 
 const navGroups = [
   {
@@ -74,7 +75,7 @@ const titles: Record<DashboardRoute, { title: string; subtitle: string }> = {
   },
   limits: {
     title: "Limits & Billing",
-    subtitle: "Self-hosted limits, quotas, and future hosted plan controls.",
+    subtitle: "Limits, quotas, and hosted plan controls.",
   },
   team: {
     title: "Team & Settings",
@@ -103,7 +104,7 @@ export function DashboardShell({
             </span>
             <div>
               <p className="text-sm font-semibold">Open Realtime</p>
-              <p className="text-xs text-[#6b7280]">Self-hosted console</p>
+              <p className="text-xs text-[#6b7280]">{deploymentModeLabel()} console</p>
             </div>
           </Link>
 
@@ -113,7 +114,7 @@ export function DashboardShell({
             </p>
             <div className="mt-2 flex items-center gap-2 text-xs text-[#6b7280]">
               <span className="size-2 rounded-full bg-[#16a34a]" />
-              {overview.currentApp?.cluster ?? "SQLite ready"}
+              {overview.currentApp?.cluster ?? `${databaseLabel()} ready`}
             </div>
           </div>
 
@@ -151,7 +152,7 @@ export function DashboardShell({
 
           <div className="mt-8 rounded-md border border-[#e7e9ec] bg-[#fafbfc] p-3 text-xs">
             <p className="font-medium">{overview.tenant.name}</p>
-            <p className="mt-1 text-[#6b7280]">SQLite adapter</p>
+            <p className="mt-1 text-[#6b7280]">{adapterLabel()}</p>
           </div>
         </aside>
 

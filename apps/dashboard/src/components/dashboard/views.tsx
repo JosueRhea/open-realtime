@@ -24,10 +24,16 @@ import type {
   UsagePoint,
   WebhookEndpoint,
 } from "@/lib/orchestrator/types";
+import {
+  adapterLabel,
+  controlPlaneDescription,
+  databaseLabel,
+  tenantModeLabel,
+} from "@/lib/runtime-labels";
 
 export function OverviewView({ overview }: { overview: DashboardOverview }) {
   if (overview.apps.length === 0) {
-    return <EmptyPlatform />;
+    return <EmptyPlatform overview={overview} />;
   }
 
   return (
@@ -243,16 +249,18 @@ export function LimitsView({ overview }: { overview: DashboardOverview }) {
     ["Messages / day", "5,000,000", `${overview.totals.messagesToday.toLocaleString()} used`],
     ["Webhook URLs", "10", `${overview.webhooks.length} configured`],
     ["Retention", "14 days", "metadata only"],
-    ["Regions", "self-hosted", overview.currentApp?.cluster ?? "not configured"],
+    ["Regions", tenantModeLabel(overview.tenant.mode), overview.currentApp?.cluster ?? "not configured"],
   ];
 
   return (
     <section className="grid gap-5 xl:grid-cols-[360px_1fr]">
       <Panel>
         <p className="text-sm text-[#6b7280]">Current plan</p>
-        <h2 className="mt-1 text-2xl font-semibold">Self-hosted</h2>
+        <h2 className="mt-1 text-2xl font-semibold">
+          {tenantModeLabel(overview.tenant.mode)}
+        </h2>
         <p className="mt-2 text-sm text-[#6b7280]">
-          Local SQLite control plane. Hosted billing can reuse this page later.
+          {controlPlaneDescription()}
         </p>
       </Panel>
       <Panel>
@@ -292,8 +300,8 @@ export function TeamView({ overview }: { overview: DashboardOverview }) {
         <h2 className="text-sm font-semibold">Instance settings</h2>
         <div className="mt-4 space-y-3">
           <SetupRow icon={ShieldCheck} label="Tenant" value={overview.tenant.name} />
-          <SetupRow icon={CircleDot} label="Mode" value={overview.tenant.mode} />
-          <SetupRow icon={Globe2} label="Adapter" value="SQLite" />
+          <SetupRow icon={CircleDot} label="Mode" value={tenantModeLabel(overview.tenant.mode)} />
+          <SetupRow icon={Globe2} label="Adapter" value={adapterLabel()} />
         </div>
       </Panel>
       <Panel className="xl:col-span-2">
@@ -307,7 +315,7 @@ export function TeamView({ overview }: { overview: DashboardOverview }) {
   );
 }
 
-function EmptyPlatform() {
+function EmptyPlatform({ overview }: { overview: DashboardOverview }) {
   return (
     <section className="grid gap-5 lg:grid-cols-[1fr_380px]">
       <Panel className="p-8">
@@ -316,7 +324,7 @@ function EmptyPlatform() {
         </div>
         <h2 className="mt-5 text-2xl font-semibold">Create your first app</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6b7280]">
-          The platform is running with SQLite and Better Auth. No demo data is
+          The platform is running with {databaseLabel()} and Better Auth. No demo data is
           loaded; once an app is created, the gateway can report realtime
           usage, webhooks, channels, and event metadata into this store.
         </p>
@@ -326,11 +334,11 @@ function EmptyPlatform() {
       </Panel>
 
       <Panel>
-        <h3 className="text-sm font-semibold">Self-hosted runtime</h3>
+        <h3 className="text-sm font-semibold">{tenantModeLabel(overview.tenant.mode)} runtime</h3>
         <div className="mt-4 space-y-3">
           <SetupRow icon={ShieldCheck} label="Auth" value="Better Auth" />
           <SetupRow icon={Globe2} label="Orchestrator" value="Next API routes" />
-          <SetupRow icon={CircleDot} label="Database" value="SQLite" />
+          <SetupRow icon={CircleDot} label="Database" value={databaseLabel()} />
           <SetupRow icon={RadioTower} label="Gateway" value="Hono app" />
         </div>
       </Panel>
