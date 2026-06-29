@@ -29,7 +29,15 @@ export type DashboardRoute =
   | "limits"
   | "team";
 
-export async function renderDashboardPage(route: DashboardRoute) {
+type DashboardSearchParams =
+  | Promise<Record<string, string | string[] | undefined>>
+  | Record<string, string | string[] | undefined>
+  | undefined;
+
+export async function renderDashboardPage(
+  route: DashboardRoute,
+  searchParams?: DashboardSearchParams,
+) {
   await ensureAuthSchema();
 
   const requestHeaders = await headers();
@@ -39,8 +47,11 @@ export async function renderDashboardPage(route: DashboardRoute) {
     return <AuthScreen />;
   }
 
+  const params = searchParams ? await searchParams : {};
+  const selectedAppId = firstParam(params.app);
   const overview = await getDashboardOrchestratorStore().getOverview(
     session.tenantId || getSelfHostedTenantId(),
+    selectedAppId,
   );
 
   return (
@@ -48,6 +59,10 @@ export async function renderDashboardPage(route: DashboardRoute) {
       {renderRoute(route, overview)}
     </DashboardShell>
   );
+}
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 function renderRoute(

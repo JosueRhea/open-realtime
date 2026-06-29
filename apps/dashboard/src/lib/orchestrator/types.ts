@@ -135,6 +135,7 @@ export type DashboardOverview = {
   tenant: Tenant;
   currentApp: RealtimeApp | null;
   apps: RealtimeApp[];
+  gatewayApps: GatewayAppCredential[];
   webhooks: WebhookEndpoint[];
   usage: UsagePoint[];
   events: RealtimeEvent[];
@@ -156,7 +157,7 @@ export interface OrchestratorStore {
     tenantId?: string;
   }): TenantMembership;
   listTenantMemberships(userId: string): TenantMembership[];
-  getOverview(tenantId: string): DashboardOverview;
+  getOverview(tenantId: string, appId?: string): DashboardOverview;
   listApps(tenantId: string): RealtimeApp[];
   listGatewayApps(tenantId: string): GatewayAppCredential[];
   createApp(input: { tenantId: string; name: string }): CreatedRealtimeApp;

@@ -23,7 +23,7 @@ export interface AsyncOrchestratorStore {
     tenantId?: string;
   }): Promise<TenantMembership>;
   listTenantMemberships(userId: string): Promise<TenantMembership[]>;
-  getOverview(tenantId: string): Promise<DashboardOverview>;
+  getOverview(tenantId: string, appId?: string): Promise<DashboardOverview>;
   listApps(tenantId: string): Promise<RealtimeApp[]>;
   listGatewayApps(tenantId: string): Promise<GatewayAppCredential[]>;
   createApp(input: { tenantId: string; name: string }): Promise<CreatedRealtimeApp>;

@@ -170,19 +170,20 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
     return rows.map(mapTenantMembership);
   }
 
-  async getOverview(tenantId: string): Promise<DashboardOverview> {
+  async getOverview(tenantId: string, appId?: string): Promise<DashboardOverview> {
     const tenant = (await this.getTenant(tenantId)) ?? defaultTenant(tenantId);
     const apps = await this.listApps(tenant.id);
-    const currentApp = apps[0] ?? null;
-    const [webhooks, usage, events, channels, apiTokens] = currentApp
+    const currentApp = apps.find((app) => app.appId === appId) ?? apps[0] ?? null;
+    const [webhooks, usage, events, channels, apiTokens, gatewayApps] = currentApp
       ? await Promise.all([
           this.listWebhooks(tenant.id, currentApp.appId),
           this.listUsage(tenant.id, currentApp.appId),
           this.listEvents(tenant.id, currentApp.appId),
           this.listChannels(tenant.id, currentApp.appId),
           this.listApiTokens(tenant.id),
+          this.listGatewayApps(tenant.id),
         ])
-      : [[], [], [], [], await this.listApiTokens(tenant.id)];
+      : [[], [], [], [], await this.listApiTokens(tenant.id), await this.listGatewayApps(tenant.id)];
     const peakConnections = Math.max(
       currentApp?.activeConnections ?? 0,
       ...usage.map((point) => point.connections),
@@ -192,6 +193,7 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
       tenant,
       currentApp,
       apps,
+      gatewayApps,
       webhooks,
       usage,
       events,

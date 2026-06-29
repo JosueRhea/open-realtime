@@ -162,10 +162,11 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
       .map((row) => mapTenantMembership(row as TenantMembershipRow));
   }
 
-  getOverview(tenantId: string): DashboardOverview {
+  getOverview(tenantId: string, appId?: string): DashboardOverview {
     const tenant = this.getTenant(tenantId) ?? defaultTenant(tenantId);
     const apps = this.listApps(tenant.id);
-    const currentApp = apps[0];
+    const currentApp = apps.find((app) => app.appId === appId) ?? apps[0] ?? null;
+    const gatewayApps = this.listGatewayApps(tenant.id);
 
     const webhooks = currentApp ? this.listWebhooks(tenant.id, currentApp.appId) : [];
     const usage = currentApp ? this.listUsage(tenant.id, currentApp.appId) : [];
@@ -183,6 +184,7 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
       tenant,
       currentApp,
       apps,
+      gatewayApps,
       webhooks,
       usage,
       events,

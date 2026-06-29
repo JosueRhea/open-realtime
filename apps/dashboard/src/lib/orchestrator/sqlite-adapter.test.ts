@@ -73,6 +73,31 @@ describe("SqliteOrchestratorStore", () => {
     expect(gatewayApps[0]?.secret).not.toBe(app.secretPreview);
   });
 
+  it("builds overview for the selected app while listing all app credentials", () => {
+    const store = createStore();
+    const firstApp = store.createApp({ tenantId: "tenant-1", name: "Production" });
+    const secondApp = store.createApp({ tenantId: "tenant-1", name: "Sandbox" });
+
+    store.reportUsage({
+      tenantId: "tenant-1",
+      appId: secondApp.appId,
+      hour: "13:00",
+      connections: 7,
+      messages: 11,
+    });
+
+    const overview = store.getOverview("tenant-1", secondApp.appId);
+
+    expect(overview.currentApp?.appId).toBe(secondApp.appId);
+    expect(overview.usage).toEqual([
+      expect.objectContaining({ appId: secondApp.appId, connections: 7 }),
+    ]);
+    expect(overview.gatewayApps.map((app) => app.appId).sort()).toEqual(
+      [firstApp.appId, secondApp.appId].sort(),
+    );
+    expect(overview.gatewayApps.every((app) => app.secret.startsWith("sec_"))).toBe(true);
+  });
+
   it("writes usage, events, channels, and webhooks only for the matching tenant app", () => {
     const store = createStore();
     const app = store.createApp({ tenantId: "tenant-1", name: "Production" });

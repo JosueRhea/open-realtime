@@ -3,9 +3,11 @@ import {
   Boxes,
   CircleDot,
   Globe2,
+  KeyRound,
   RadioTower,
   ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
 
 import { createWebhookAction } from "@/app/actions";
 import { AppManager } from "@/components/dashboard/app-manager";
@@ -19,6 +21,7 @@ import {
 import type {
   ChannelSummary,
   DashboardOverview,
+  GatewayAppCredential,
   RealtimeApp,
   RealtimeEvent,
   UsagePoint,
@@ -169,16 +172,26 @@ export function AppsView({ overview }: { overview: DashboardOverview }) {
 
 export function CredentialsView({ overview }: { overview: DashboardOverview }) {
   const app = overview.currentApp;
+  const selectedCredentials = app
+    ? overview.gatewayApps.find((credentials) => credentials.appId === app.appId) ?? null
+    : null;
   const clientCode = app
     ? `new Pusher("${app.key}", { wsHost: "${app.host}", cluster: "${app.cluster}", forceTLS: false })`
     : "Create an app to generate client credentials.";
-  const serverCode = app
-    ? `new Pusher({ appId: "${app.appId}", key: "${app.key}", secret: "env:OPEN_REALTIME_PUSHER_SECRET", host: "${app.host}" })`
+  const serverCode = app && selectedCredentials
+    ? `new Pusher({ appId: "${app.appId}", key: "${app.key}", secret: "${selectedCredentials.secret}", host: "${app.host}" })`
     : "Create an app to generate server credentials.";
 
   return (
-    <section className="grid gap-5 xl:grid-cols-[0.8fr_1fr]">
-      <Credentials app={app} />
+    <section className="grid gap-5 xl:grid-cols-[0.95fr_1fr]">
+      <div className="space-y-5">
+        <Credentials app={app} credentials={selectedCredentials} />
+        <AllAppCredentials
+          apps={overview.apps}
+          credentials={overview.gatewayApps}
+          currentAppId={app?.appId ?? null}
+        />
+      </div>
       <Panel>
         <h2 className="text-sm font-semibold">Code snippets</h2>
         <CodeBlock label="Client · pusher-js" value={clientCode} />
@@ -433,6 +446,7 @@ function AppsTable({ apps }: { apps: RealtimeApp[] }) {
               <th className="py-2 font-medium">Conns</th>
               <th className="py-2 font-medium">Msgs today</th>
               <th className="py-2 font-medium">Status</th>
+              <th className="py-2 font-medium" />
             </tr>
           </thead>
           <tbody>
@@ -444,6 +458,15 @@ function AppsTable({ apps }: { apps: RealtimeApp[] }) {
                 <td className="py-3">{app.activeConnections.toLocaleString()}</td>
                 <td className="py-3">{app.messagesToday.toLocaleString()}</td>
                 <td className="py-3">{app.status}</td>
+                <td className="py-3 text-right">
+                  <Link
+                    className="inline-flex items-center gap-1 rounded-md border border-[#d4d7db] px-2 py-1 text-xs text-[#4b5563] hover:bg-[#f4f5f6]"
+                    href={`/credentials?app=${encodeURIComponent(app.appId)}`}
+                  >
+                    <KeyRound size={13} />
+                    Keys
+                  </Link>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -468,19 +491,95 @@ function CreateAppPanel() {
   );
 }
 
-function Credentials({ app }: { app: RealtimeApp | null }) {
+function Credentials({
+  app,
+  credentials,
+}: {
+  app: RealtimeApp | null;
+  credentials: GatewayAppCredential | null;
+}) {
   return (
     <Panel>
-      <h2 className="text-sm font-semibold">App keys</h2>
+      <h2 className="text-sm font-semibold">
+        {app ? `${app.name} keys` : "App keys"}
+      </h2>
       <p className="mt-1 text-sm text-[#6b7280]">
         Pusher-compatible credentials. Keep your secret private.
       </p>
       <div className="mt-4 space-y-3">
         <CredentialRow label="app_id" value={app?.appId ?? "create an app first"} />
         <CredentialRow label="key" value={app?.key ?? "create an app first"} />
-        <CredentialRow label="secret" value={app?.secretPreview ?? "create an app first"} />
+        <CredentialRow
+          label="secret"
+          value={credentials?.secret ?? app?.secretPreview ?? "create an app first"}
+        />
         <CredentialRow label="cluster" value={app?.cluster ?? "create an app first"} />
         <CredentialRow label="host" value={app?.host ?? "create an app first"} />
+      </div>
+    </Panel>
+  );
+}
+
+function AllAppCredentials({
+  apps,
+  credentials,
+  currentAppId,
+}: {
+  apps: RealtimeApp[];
+  credentials: GatewayAppCredential[];
+  currentAppId: string | null;
+}) {
+  const credentialByApp = new Map(
+    credentials.map((credential) => [credential.appId, credential]),
+  );
+
+  return (
+    <Panel>
+      <h2 className="text-sm font-semibold">All app credentials</h2>
+      <div className="mt-4 space-y-3">
+        {apps.length === 0 ? (
+          <EmptyState
+            body="Create an app to see its Pusher-compatible credentials."
+            title="No credentials yet"
+          />
+        ) : (
+          apps.map((app) => {
+            const appCredentials = credentialByApp.get(app.appId);
+            const isCurrent = app.appId === currentAppId;
+
+            return (
+              <div
+                className={[
+                  "rounded-md border p-3",
+                  isCurrent
+                    ? "border-[#c7d2fe] bg-[#f8f9ff]"
+                    : "border-[#eceef0] bg-[#fafbfc]",
+                ].join(" ")}
+                key={app.appId}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{app.name}</p>
+                    <p className="mt-1 truncate text-xs text-[#6b7280]">{app.appId}</p>
+                  </div>
+                  <Link
+                    className="shrink-0 rounded-md border border-[#d4d7db] bg-white px-2 py-1 text-xs text-[#4b5563] hover:bg-[#f4f5f6]"
+                    href={`/credentials?app=${encodeURIComponent(app.appId)}`}
+                  >
+                    Select
+                  </Link>
+                </div>
+                <div className="mt-3 space-y-2">
+                  <CredentialRow label="key" value={app.key} />
+                  <CredentialRow
+                    label="secret"
+                    value={appCredentials?.secret ?? app.secretPreview}
+                  />
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </Panel>
   );

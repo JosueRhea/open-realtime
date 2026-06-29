@@ -13,9 +13,10 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AppSwitcher } from "@/components/dashboard/app-switcher";
 import type { DashboardRoute } from "@/components/dashboard/page-renderer";
 import type { DashboardOverview } from "@/lib/orchestrator/types";
-import { adapterLabel, databaseLabel, deploymentModeLabel } from "@/lib/runtime-labels";
+import { adapterLabel, tenantModeLabel } from "@/lib/runtime-labels";
 
 const navGroups = [
   {
@@ -93,6 +94,9 @@ export function DashboardShell({
   overview: DashboardOverview;
 }) {
   const title = titles[activeRoute];
+  const selectedAppQuery = overview.currentApp
+    ? `?app=${encodeURIComponent(overview.currentApp.appId)}`
+    : "";
 
   return (
     <main className="min-h-screen bg-[#f5f6f7] text-[#1a1d21]">
@@ -104,18 +108,17 @@ export function DashboardShell({
             </span>
             <div>
               <p className="text-sm font-semibold">Open Realtime</p>
-              <p className="text-xs text-[#6b7280]">{deploymentModeLabel()} console</p>
+              <p className="text-xs text-[#6b7280]">
+                {tenantModeLabel(overview.tenant.mode)} console
+              </p>
             </div>
           </Link>
 
-          <div className="mb-5 rounded-md border border-[#e7e9ec] bg-[#fafbfc] p-3">
-            <p className="truncate text-sm font-medium">
-              {overview.currentApp?.name ?? "No app yet"}
-            </p>
-            <div className="mt-2 flex items-center gap-2 text-xs text-[#6b7280]">
-              <span className="size-2 rounded-full bg-[#16a34a]" />
-              {overview.currentApp?.cluster ?? `${databaseLabel()} ready`}
-            </div>
+          <div className="mb-5">
+            <AppSwitcher
+              apps={overview.apps}
+              currentAppId={overview.currentApp?.appId ?? null}
+            />
           </div>
 
           <nav className="space-y-5">
@@ -137,7 +140,7 @@ export function DashboardShell({
                             ? "bg-[#eef1fe] text-[#3730a3]"
                             : "text-[#4b5563] hover:bg-[#f4f5f6]",
                         ].join(" ")}
-                        href={item.href}
+                        href={`${item.href}${selectedAppQuery}`}
                         key={item.route}
                       >
                         <Icon size={15} />
@@ -175,7 +178,7 @@ export function DashboardShell({
                 </span>
                 <Link
                   className="inline-flex items-center gap-2 rounded-md bg-[#1a1d21] px-3 py-2 text-sm font-medium text-white"
-                  href="/apps"
+                  href={`/apps${selectedAppQuery}`}
                 >
                   <Plus size={15} />
                   Create app

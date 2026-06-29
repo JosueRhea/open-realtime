@@ -22,8 +22,8 @@ export class SqliteAsyncOrchestratorStore implements AsyncOrchestratorStore {
     return this.store.listTenantMemberships(userId);
   }
 
-  async getOverview(tenantId: string) {
-    return this.store.getOverview(tenantId);
+  async getOverview(tenantId: string, appId?: string) {
+    return this.store.getOverview(tenantId, appId);
   }
 
   async listApps(tenantId: string) {
