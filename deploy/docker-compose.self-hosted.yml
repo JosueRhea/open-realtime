@@ -1,0 +1,45 @@
+services:
+  dashboard:
+    build:
+      context: ..
+      dockerfile: deploy/dashboard.Dockerfile
+    environment:
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3002}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      ORCHESTRATOR_APP_SECRET_KEY: ${ORCHESTRATOR_APP_SECRET_KEY:-development-only-change-me}
+      ORCHESTRATOR_STORE_DRIVER: sqlite
+      OPEN_REALTIME_SQLITE_PATH: /data/open-realtime.db
+      OPEN_REALTIME_TENANT_ID: ${OPEN_REALTIME_TENANT_ID:-self-hosted}
+      OPEN_REALTIME_TENANT_NAME: ${OPEN_REALTIME_TENANT_NAME:-Self Hosted}
+      OPEN_REALTIME_CLUSTER: ${OPEN_REALTIME_CLUSTER:-self-host-1}
+      OPEN_REALTIME_HOST: ${OPEN_REALTIME_HOST:-localhost:3001}
+    ports:
+      - "3002:3000"
+    volumes:
+      - dashboard-data:/data
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: deploy/gateway.Dockerfile
+    environment:
+      PORT: 3001
+      PUSHER_APP_ID: ${PUSHER_APP_ID:-open-realtime}
+      PUSHER_KEY: ${PUSHER_KEY}
+      PUSHER_SECRET: ${PUSHER_SECRET}
+      PUSHER_CLUSTER: ${PUSHER_CLUSTER:-self-host-1}
+      PUSHER_TENANT_ID: ${OPEN_REALTIME_TENANT_ID:-self-hosted}
+      ORCHESTRATOR_URL: ${ORCHESTRATOR_URL:-http://dashboard:3000}
+      ORCHESTRATOR_TOKEN: ${ORCHESTRATOR_TOKEN}
+      ORCHESTRATOR_TENANT_ID: ${OPEN_REALTIME_TENANT_ID:-self-hosted}
+      REDIS_URL: ${REDIS_URL:-}
+      OBSERVABILITY_DRIVER: ${OBSERVABILITY_DRIVER:-none}
+      AXIOM_TOKEN: ${AXIOM_TOKEN:-}
+      AXIOM_DATASET: ${AXIOM_DATASET:-}
+    ports:
+      - "3001:3001"
+    depends_on:
+      - dashboard
+
+volumes:
+  dashboard-data:

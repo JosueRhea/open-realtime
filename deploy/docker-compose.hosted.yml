@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-open_realtime}
+      POSTGRES_USER: ${POSTGRES_USER:-open_realtime}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - redis-data:/data
+
+  migrate:
+    build:
+      context: ..
+      dockerfile: deploy/dashboard.Dockerfile
+    environment:
+      POSTGRES_URL: postgres://${POSTGRES_USER:-open_realtime}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-open_realtime}
+    command: ["pnpm", "migrate:postgres"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ..
+      dockerfile: deploy/dashboard.Dockerfile
+    environment:
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      ORCHESTRATOR_APP_SECRET_KEY: ${ORCHESTRATOR_APP_SECRET_KEY}
+      ORCHESTRATOR_STORE_DRIVER: postgres
+      POSTGRES_URL: postgres://${POSTGRES_USER:-open_realtime}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-open_realtime}
+      OPEN_REALTIME_CLUSTER: ${OPEN_REALTIME_CLUSTER:-mt1}
+      OPEN_REALTIME_HOST: ${OPEN_REALTIME_HOST}
+    ports:
+      - "${DASHBOARD_PORT:-3002}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  gateway:
+    build:
+      context: ..
+      dockerfile: deploy/gateway.Dockerfile
+    environment:
+      PORT: 3001
+      PUSHER_CLUSTER: ${PUSHER_CLUSTER:-mt1}
+      ORCHESTRATOR_APP_REGISTRY: "true"
+      ORCHESTRATOR_APP_REGISTRY_REFRESH_MS: ${ORCHESTRATOR_APP_REGISTRY_REFRESH_MS:-10000}
+      ORCHESTRATOR_URL: ${ORCHESTRATOR_URL:-http://dashboard:3000}
+      ORCHESTRATOR_TOKEN: ${ORCHESTRATOR_TOKEN}
+      ORCHESTRATOR_TENANT_ID: ${ORCHESTRATOR_TENANT_ID}
+      ORCHESTRATOR_FLUSH_INTERVAL_MS: ${ORCHESTRATOR_FLUSH_INTERVAL_MS:-5000}
+      REDIS_URL: redis://redis:6379
+      REDIS_PREFIX: ${REDIS_PREFIX:-open-realtime}
+      OBSERVABILITY_DRIVER: ${OBSERVABILITY_DRIVER:-axiom}
+      OBSERVABILITY_SERVICE: ${OBSERVABILITY_SERVICE:-open-realtime}
+      OBSERVABILITY_ENVIRONMENT: ${OBSERVABILITY_ENVIRONMENT:-production}
+      AXIOM_TOKEN: ${AXIOM_TOKEN:-}
+      AXIOM_DATASET: ${AXIOM_DATASET:-}
+      AXIOM_API_URL: ${AXIOM_API_URL:-https://api.axiom.co}
+    ports:
+      - "${GATEWAY_PORT:-3001}:3001"
+    depends_on:
+      dashboard:
+        condition: service_started
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:

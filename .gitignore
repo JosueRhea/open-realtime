@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+apps/*/node_modules/
+
+# builds
+apps/*/.next/
+apps/*/dist/
+apps/*/out/
+apps/*/build/
+coverage/
+*.tsbuildinfo
+
+# local runtime data
+apps/dashboard/data/
+*.db
+*.db-shm
+*.db-wal
+
+# env/secrets
+.env
+.env.*
+!**/.env.example
+!**/.env.hosted.example
+
+# tooling and OS noise
+.DS_Store
+*.log
+.vercel/
+.railway/

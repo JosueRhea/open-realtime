@@ -1,0 +1,20 @@
+{
+  "name": "open-realtime-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "scripts": {
+    "dev": "pnpm --filter @open-realtime/gateway dev",
+    "dev:gateway": "pnpm --filter @open-realtime/gateway dev",
+    "dev:dashboard": "pnpm --filter @open-realtime/dashboard dev",
+    "bootstrap:local": "node scripts/bootstrap-local.mjs",
+    "migrate:postgres": "node scripts/migrate-postgres.mjs",
+    "smoke:live": "pnpm --filter @open-realtime/gateway smoke:live",
+    "smoke:frontend": "pnpm --filter @open-realtime/gateway smoke:frontend",
+    "test": "pnpm --filter @open-realtime/gateway test && pnpm --filter @open-realtime/dashboard test",
+    "typecheck": "pnpm --filter @open-realtime/gateway typecheck && pnpm --filter @open-realtime/dashboard typecheck",
+    "build": "pnpm --filter @open-realtime/gateway build && pnpm --filter @open-realtime/dashboard build",
+    "verify": "node scripts/verify.mjs"
+  }
+}

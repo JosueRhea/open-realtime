@@ -1,0 +1,32 @@
+{
+  "name": "@open-realtime/gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/runtime/node-server.ts",
+    "smoke:live": "tsx src/example/live-smoke.ts",
+    "smoke:frontend": "tsx src/example/frontend-smoke.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "start": "tsx src/runtime/node-server.ts",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.4",
+    "dotenv": "^17.2.3",
+    "hono": "^4.10.7",
+    "ioredis": "^5.8.2",
+    "pusher": "^5.3.4",
+    "pusher-js": "^8.5.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/ws": "^8.18.1",
+    "playwright": "^1.61.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  }
+}

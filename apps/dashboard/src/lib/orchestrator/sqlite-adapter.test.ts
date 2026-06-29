@@ -1,0 +1,133 @@
+import Database from "better-sqlite3";
+import { describe, expect, it } from "vitest";
+
+import { SqliteOrchestratorStore } from "@/lib/orchestrator/sqlite-adapter";
+
+function createStore() {
+  return new SqliteOrchestratorStore(new Database(":memory:"));
+}
+
+describe("SqliteOrchestratorStore", () => {
+  it("provisions a tenant membership for dashboard users", () => {
+    const store = createStore();
+
+    const membership = store.ensureTenantForUser({
+      userId: "user-1",
+      userName: "Ada",
+      userEmail: "ada@example.com",
+      tenantId: "tenant-1",
+    });
+
+    expect(membership).toMatchObject({
+      tenantId: "tenant-1",
+      userId: "user-1",
+      role: "owner",
+    });
+    expect(store.listTenantMemberships("user-1")).toEqual([membership]);
+    expect(store.ensureTenantForUser({ userId: "user-1", tenantId: "tenant-1" }))
+      .toEqual(membership);
+    expect(store.getOverview("tenant-1").tenant).toMatchObject({
+      id: "tenant-1",
+      mode: "self-hosted",
+    });
+  });
+
+  it("creates and verifies tenant-scoped API tokens", () => {
+    const store = createStore();
+
+    const created = store.createApiToken({
+      tenantId: "tenant-1",
+      name: "Gateway",
+      scopes: ["ingest:write"],
+    });
+
+    expect(created.token).toMatchObject({
+      tenantId: "tenant-1",
+      name: "Gateway",
+      scopes: ["ingest:write"],
+    });
+    expect(created.plainTextToken).toContain("tenant-1");
+    expect(store.verifyApiToken(created.plainTextToken)).toMatchObject({
+      tenantId: "tenant-1",
+      scopes: ["ingest:write"],
+    });
+    expect(store.verifyApiToken("bad-token")).toBeNull();
+  });
+
+  it("stores app secrets encrypted and returns gateway credentials", () => {
+    const store = createStore();
+    const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
+
+    const gatewayApps = store.listGatewayApps("tenant-1");
+
+    expect(gatewayApps).toEqual([
+      expect.objectContaining({
+        appId: app.appId,
+        tenantId: "tenant-1",
+        key: app.key,
+        cluster: app.cluster,
+        name: app.name,
+      }),
+    ]);
+    expect(gatewayApps[0]?.secret).toMatch(/^sec_/);
+    expect(gatewayApps[0]?.secret).not.toBe(app.secretPreview);
+  });
+
+  it("writes usage, events, channels, and webhooks only for the matching tenant app", () => {
+    const store = createStore();
+    const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
+
+    expect(() =>
+      store.reportUsage({
+        tenantId: "other-tenant",
+        appId: app.appId,
+        hour: "12:00",
+        connections: 1,
+        messages: 1,
+      }),
+    ).toThrow("was not found for tenant other-tenant");
+
+    store.reportUsage({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      hour: "12:00",
+      connections: 12,
+      messages: 24,
+      webhookFailures: 2,
+    });
+    store.reportEvent({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      type: "message_sent",
+      channel: "presence-room",
+      user: "system",
+      status: "sent",
+      meta: "gateway",
+    });
+    store.reportChannel({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      name: "presence-room",
+      type: "presence",
+      subscriptions: 3,
+      messagesPerSecond: 4,
+    });
+    store.createWebhook({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      url: "https://example.com/webhooks",
+      enabledEvents: ["member_added"],
+    });
+
+    const overview = store.getOverview("tenant-1");
+    expect(overview.totals).toMatchObject({
+      activeConnections: 12,
+      messagesToday: 24,
+      webhookFailures: 0,
+    });
+    expect(overview.usage).toHaveLength(1);
+    expect(overview.events).toHaveLength(1);
+    expect(overview.channels).toHaveLength(1);
+    expect(overview.webhooks).toHaveLength(1);
+  });
+});
