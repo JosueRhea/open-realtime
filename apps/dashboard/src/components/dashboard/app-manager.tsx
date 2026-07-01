@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { RealtimeApp } from "@/lib/orchestrator/types";
 
 export function AppManager() {
@@ -46,24 +48,23 @@ export function AppManager() {
   return (
     <div>
       <form className="mt-4 space-y-3" onSubmit={createApp}>
-        <input
-          className="w-full rounded-md border border-[#d4d7db] bg-white px-3 py-2 text-sm outline-none focus:border-[#4f46e5]"
+        <Input
           name="name"
           onChange={(event) => setName(event.target.value)}
           placeholder="Production Web"
           required
           value={name}
         />
-        <button
-          className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-[#1a1d21] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+        <Button
+          className="w-full rounded-md"
           disabled={isCreating}
         >
           <Plus size={15} />
           {isCreating ? "Creating app" : "Create app"}
-        </button>
+        </Button>
       </form>
 
-      {error ? <p className="mt-2 text-xs text-[#dc2626]">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
     </div>
   );
 }

@@ -14,6 +14,8 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { AppSwitcher } from "@/components/dashboard/app-switcher";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import type { DashboardRoute } from "@/components/dashboard/page-renderer";
 import type { DashboardOverview } from "@/lib/orchestrator/types";
 import { adapterLabel, tenantModeLabel } from "@/lib/runtime-labels";
@@ -99,16 +101,16 @@ export function DashboardShell({
     : "";
 
   return (
-    <main className="min-h-screen bg-[#f5f6f7] text-[#1a1d21]">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[240px_1fr]">
-        <aside className="border-r border-[#e7e9ec] bg-white/80 px-3 py-4">
+        <aside className="border-r bg-card/80 px-3 py-4">
           <Link className="mb-5 flex items-center gap-2 px-2" href="/">
-            <span className="flex size-8 items-center justify-center rounded-md bg-[#1a1d21] text-white">
+            <span className="flex size-8 items-center justify-center rounded-md bg-foreground text-background">
               <RadioTower size={16} />
             </span>
             <div>
               <p className="text-sm font-semibold">Open Realtime</p>
-              <p className="text-xs text-[#6b7280]">
+              <p className="text-xs text-muted-foreground">
                 {tenantModeLabel(overview.tenant.mode)} console
               </p>
             </div>
@@ -124,7 +126,7 @@ export function DashboardShell({
           <nav className="space-y-5">
             {navGroups.map((group) => (
               <div key={group.label}>
-                <p className="mb-2 px-2 text-[11px] font-medium tracking-wide text-[#a3a8b0]">
+                <p className="mb-2 px-2 text-[11px] font-medium tracking-wide text-muted-foreground">
                   {group.label}
                 </p>
                 <div className="space-y-1">
@@ -137,8 +139,8 @@ export function DashboardShell({
                         className={[
                           "flex items-center gap-2 rounded-md px-2 py-2 text-sm",
                           isActive
-                            ? "bg-[#eef1fe] text-[#3730a3]"
-                            : "text-[#4b5563] hover:bg-[#f4f5f6]",
+                            ? "bg-muted text-foreground"
+                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
                         ].join(" ")}
                         href={`${item.href}${selectedAppQuery}`}
                         key={item.route}
@@ -153,33 +155,34 @@ export function DashboardShell({
             ))}
           </nav>
 
-          <div className="mt-8 rounded-md border border-[#e7e9ec] bg-[#fafbfc] p-3 text-xs">
-            <p className="font-medium">{overview.tenant.name}</p>
-            <p className="mt-1 text-[#6b7280]">{adapterLabel()}</p>
-          </div>
+          <Card className="mt-8 rounded-md" size="sm">
+            <CardContent>
+              <p className="font-medium">{overview.tenant.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{adapterLabel()}</p>
+            </CardContent>
+          </Card>
         </aside>
 
         <section className="min-w-0">
-          <header className="border-b border-[#e7e9ec] bg-white/80">
+          <header className="border-b bg-card/80">
             <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
               <div>
-                <div className="flex items-center gap-2 text-xs text-[#6b7280]">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>{overview.tenant.name}</span>
                   <span>/</span>
                   <span>{overview.currentApp?.appId ?? "create-app"}</span>
                 </div>
                 <h1 className="mt-1 text-xl font-semibold">{title.title}</h1>
-                <p className="mt-1 text-sm text-[#6b7280]">{title.subtitle}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{title.subtitle}</p>
               </div>
 
               <div className="flex items-center gap-2">
-                <Link
-                  className="inline-flex items-center gap-2 rounded-md bg-[#1a1d21] px-3 py-2 text-sm font-medium text-white"
-                  href={`/apps${selectedAppQuery}`}
-                >
-                  <Plus size={15} />
-                  Create app
-                </Link>
+                <Button asChild className="rounded-md">
+                  <Link href={`/apps${selectedAppQuery}`}>
+                    <Plus size={15} />
+                    Create app
+                  </Link>
+                </Button>
               </div>
             </div>
           </header>

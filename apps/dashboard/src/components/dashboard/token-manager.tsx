@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/dashboard/ui";
 import type { ApiToken } from "@/lib/orchestrator/types";
 
 export function TokenManager({ tokens }: { tokens: ApiToken[] }) {
@@ -46,59 +49,51 @@ export function TokenManager({ tokens }: { tokens: ApiToken[] }) {
   return (
     <div>
       <form className="mt-4 flex gap-2" onSubmit={createToken}>
-        <input
-          className="min-w-0 flex-1 rounded-md border border-[#d4d7db] bg-white px-3 py-2 text-sm outline-none focus:border-[#4f46e5]"
+        <Input
+          className="min-w-0 flex-1"
           name="name"
           onChange={(event) => setName(event.target.value)}
           placeholder="Gateway production"
           required
           value={name}
         />
-        <button
-          className="rounded-md bg-[#1a1d21] px-3 py-2 text-xs font-medium text-white disabled:opacity-50"
-          disabled={isCreating}
-        >
+        <Button className="rounded-md" disabled={isCreating} size="sm">
           {isCreating ? "Creating" : "Create token"}
-        </button>
+        </Button>
       </form>
 
       {createdToken ? (
-        <div className="mt-3 rounded-md border border-[#d4ecdb] bg-[#f0faf3] p-3">
-          <p className="text-xs font-medium text-[#15803d]">
+        <div className="mt-3 rounded-md border border-primary/20 bg-primary/10 p-3">
+          <p className="text-xs font-medium text-primary">
             Copy this token now. It will not be shown again.
           </p>
-          <code className="mt-2 block break-all rounded border border-[#d4ecdb] bg-white p-2 text-xs">
+          <code className="mt-2 block break-all rounded border bg-background p-2 text-xs">
             {createdToken}
           </code>
         </div>
       ) : null}
 
-      {error ? <p className="mt-2 text-xs text-[#dc2626]">{error}</p> : null}
+      {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
 
       <div className="mt-4 space-y-3">
         {items.length === 0 ? (
-          <div className="flex min-h-40 items-center justify-center rounded-md border border-dashed border-[#d4d7db] bg-[#fafbfc] p-5 text-center">
-            <div>
-              <p className="text-sm font-medium">No tokens created</p>
-              <p className="mt-1 max-w-md text-sm leading-6 text-[#8a9099]">
-                Create a scoped token for gateway ingestion and orchestrator
-                automation.
-              </p>
-            </div>
-          </div>
+          <EmptyState
+            body="Create a scoped token for gateway ingestion and orchestrator automation."
+            title="No tokens created"
+          />
         ) : (
           items.map((token) => (
             <div
-              className="rounded-md border border-[#eceef0] bg-[#fafbfc] p-3 text-sm"
+              className="rounded-md border bg-muted/40 p-3 text-sm"
               key={token.id}
             >
               <div className="flex items-center justify-between gap-3">
                 <p className="font-medium">{token.name}</p>
-                <span className="text-xs text-[#6b7280]">
+                <span className="text-xs text-muted-foreground">
                   {token.scopes.join(", ")}
                 </span>
               </div>
-              <p className="mt-1 font-mono text-xs text-[#6b7280]">
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
                 {token.tokenPreview}
               </p>
             </div>

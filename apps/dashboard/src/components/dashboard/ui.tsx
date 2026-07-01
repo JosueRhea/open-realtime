@@ -2,6 +2,9 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { Clipboard } from "lucide-react";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
 export function Panel({
   children,
   className = "",
@@ -10,11 +13,9 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section
-      className={`min-w-0 rounded-md border border-[#e2e7ee] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${className}`}
-    >
-      {children}
-    </section>
+    <Card className={cn("min-w-0 rounded-md", className)}>
+      <CardContent>{children}</CardContent>
+    </Card>
   );
 }
 
@@ -26,10 +27,10 @@ export function EmptyState({
   body: string;
 }) {
   return (
-    <div className="flex min-h-40 items-center justify-center rounded-md border border-dashed border-[#d4d7db] bg-[#fafbfc] p-5 text-center">
+    <div className="flex min-h-40 items-center justify-center rounded-md border border-dashed bg-muted/40 p-5 text-center">
       <div>
         <p className="text-sm font-medium">{title}</p>
-        <p className="mt-1 max-w-md text-sm leading-6 text-[#8a9099]">{body}</p>
+        <p className="mt-1 max-w-md text-sm leading-6 text-muted-foreground">{body}</p>
       </div>
     </div>
   );
@@ -37,10 +38,10 @@ export function EmptyState({
 
 export function CredentialRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid min-w-0 grid-cols-[80px_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm sm:grid-cols-[88px_minmax(0,1fr)_auto]">
-      <span className="text-xs text-[#6b7280]">{label}</span>
+    <div className="grid min-w-0 grid-cols-[80px_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm sm:grid-cols-[88px_minmax(0,1fr)_auto]">
+      <span className="text-xs text-muted-foreground">{label}</span>
       <code className="min-w-0 break-all text-xs leading-5">{value}</code>
-      <Clipboard size={14} className="shrink-0 text-[#8a9099]" />
+      <Clipboard size={14} className="shrink-0 text-muted-foreground" />
     </div>
   );
 }
@@ -55,8 +56,8 @@ export function SetupRow({
   value: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center justify-between gap-4 rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm">
-      <span className="inline-flex min-w-0 items-center gap-2 text-[#6b7280]">
+    <div className="flex min-w-0 items-center justify-between gap-4 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+      <span className="inline-flex min-w-0 items-center gap-2 text-muted-foreground">
         <Icon size={15} />
         {label}
       </span>

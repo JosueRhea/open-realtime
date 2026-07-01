@@ -18,6 +18,20 @@ import {
   Panel,
   SetupRow,
 } from "@/components/dashboard/ui";
+import { UsageChart } from "@/components/dashboard/usage-chart";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type {
   ChannelSummary,
   DashboardOverview,
@@ -25,7 +39,6 @@ import type {
   RealtimeApp,
   RealtimeEvent,
   UsageRange,
-  UsagePoint,
   WebhookEndpoint,
 } from "@/lib/orchestrator/types";
 import {
@@ -61,39 +74,37 @@ export function ActivityView({ overview }: { overview: DashboardOverview }) {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-sm font-semibold">Streaming event metadata</h2>
-          <p className="mt-1 text-sm text-[#6b7280]">
+          <p className="mt-1 text-sm text-muted-foreground">
             Message bodies are not stored, only delivery metadata.
           </p>
         </div>
-        <span className="rounded-md bg-[#f0faf3] px-2 py-1 text-xs text-[#15803d]">
-          Powered by Axiom
-        </span>
+        <Badge variant="secondary">Powered by Axiom</Badge>
       </div>
-      <div className="mt-5 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-xs text-[#6b7280]">
-            <tr>
-              <th className="py-2 font-medium">Time</th>
-              <th className="py-2 font-medium">Event</th>
-              <th className="py-2 font-medium">Channel</th>
-              <th className="py-2 font-medium">User</th>
-              <th className="py-2 font-medium">Status</th>
-              <th className="py-2 font-medium">Meta</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-5">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Time</TableHead>
+              <TableHead>Event</TableHead>
+              <TableHead>Channel</TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Meta</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {overview.events.map((event) => (
-              <tr className="border-t border-[#eceef0]" key={event.id}>
-                <td className="py-3 text-[#6b7280]">{event.time}</td>
-                <td className="py-3 font-medium">{event.type}</td>
-                <td className="py-3">{event.channel}</td>
-                <td className="py-3">{event.user}</td>
-                <td className="py-3">{event.status}</td>
-                <td className="py-3 text-[#6b7280]">{event.meta}</td>
-              </tr>
+              <TableRow key={event.id}>
+                <TableCell className="text-muted-foreground">{event.time}</TableCell>
+                <TableCell className="font-medium">{event.type}</TableCell>
+                <TableCell>{event.channel}</TableCell>
+                <TableCell>{event.user}</TableCell>
+                <TableCell>{event.status}</TableCell>
+                <TableCell className="text-muted-foreground">{event.meta}</TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
         {overview.events.length === 0 ? (
           <EmptyState
             body="Connect the gateway and start triggering channel events to populate this stream."
@@ -110,29 +121,29 @@ export function ChannelsView({ overview }: { overview: DashboardOverview }) {
     <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
       <Panel>
         <h2 className="text-sm font-semibold">Channels</h2>
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-xs text-[#6b7280]">
-              <tr>
-                <th className="py-2 font-medium">Channel</th>
-                <th className="py-2 font-medium">Type</th>
-                <th className="py-2 font-medium">Subs</th>
-                <th className="py-2 font-medium">Msg/s</th>
-                <th className="py-2 font-medium">Last activity</th>
-              </tr>
-            </thead>
-            <tbody>
+        <div className="mt-4">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Channel</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Subs</TableHead>
+                <TableHead>Msg/s</TableHead>
+                <TableHead>Last activity</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {overview.channels.map((channel) => (
-                <tr className="border-t border-[#eceef0]" key={channel.name}>
-                  <td className="py-3 font-medium">{channel.name}</td>
-                  <td className="py-3">{channel.type}</td>
-                  <td className="py-3">{channel.subscriptions.toLocaleString()}</td>
-                  <td className="py-3">{channel.messagesPerSecond}</td>
-                  <td className="py-3 text-[#6b7280]">{channel.lastActivity}</td>
-                </tr>
+                <TableRow key={channel.name}>
+                  <TableCell className="font-medium">{channel.name}</TableCell>
+                  <TableCell>{channel.type}</TableCell>
+                  <TableCell>{channel.subscriptions.toLocaleString()}</TableCell>
+                  <TableCell>{channel.messagesPerSecond}</TableCell>
+                  <TableCell className="text-muted-foreground">{channel.lastActivity}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
           {overview.channels.length === 0 ? (
             <EmptyState
               body="Public, private, and presence channels will appear as clients subscribe."
@@ -197,32 +208,29 @@ function UsageRangeSelector({
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
         <h2 className="text-sm font-semibold">Usage window</h2>
-        <p className="mt-1 text-sm text-[#6b7280]">
+        <p className="mt-1 text-sm text-muted-foreground">
           Connections and messages for the selected app.
         </p>
       </div>
-      <div className="inline-flex rounded-md border border-[#d4d7db] bg-white p-1">
+      <ToggleGroup
+        className="rounded-md border bg-card p-1"
+        size="sm"
+        type="single"
+        value={value}
+      >
         {ranges.map((range) => {
-          const active = range.value === value;
           const params = new URLSearchParams({ range: range.value });
           if (currentAppId) params.set("app", currentAppId);
 
           return (
-            <Link
-              className={[
-                "rounded px-3 py-1.5 text-xs font-medium",
-                active
-                  ? "bg-[#1a1d21] text-white"
-                  : "text-[#4b5563] hover:bg-[#f4f5f6]",
-              ].join(" ")}
-              href={`/usage?${params.toString()}`}
-              key={range.value}
-            >
-              {range.label}
-            </Link>
+            <ToggleGroupItem asChild key={range.value} value={range.value}>
+              <Link className="rounded-md" href={`/usage?${params.toString()}`}>
+                {range.label}
+              </Link>
+            </ToggleGroupItem>
           );
         })}
-      </div>
+      </ToggleGroup>
     </div>
   );
 }
@@ -272,15 +280,15 @@ export function WebhooksView({ overview }: { overview: DashboardOverview }) {
             type="hidden"
             value={overview.currentApp?.appId ?? ""}
           />
-          <input
-            className="w-full rounded-md border border-[#d4d7db] bg-white px-3 py-2 text-sm outline-none focus:border-[#4f46e5]"
+          <Input
+            className="rounded-md"
             disabled={!overview.currentApp}
             name="url"
             placeholder="https://api.example.com/pusher/webhooks"
             required
             type="url"
           />
-          <div className="space-y-2 text-sm text-[#4b5563]">
+          <div className="space-y-2 text-sm text-muted-foreground">
             {[
               "channel_occupied",
               "channel_vacated",
@@ -288,25 +296,23 @@ export function WebhooksView({ overview }: { overview: DashboardOverview }) {
               "member_removed",
             ].map((event) => (
               <label className="flex items-center gap-2" key={event}>
-                <input
-                  className="size-4"
+                <Checkbox
                   defaultChecked
                   name="events"
-                  type="checkbox"
                   value={event}
                 />
                 {event}
               </label>
             ))}
           </div>
-          <button
-            className="w-full rounded-md bg-[#1a1d21] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+          <Button
+            className="w-full rounded-md"
             disabled={!overview.currentApp}
           >
             Add endpoint
-          </button>
+          </Button>
         </form>
-        <p className="mt-3 text-xs leading-5 text-[#8a9099]">
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">
           Endpoints receive signed POST requests for presence, channel, and
           batched Pusher-compatible events.
         </p>
@@ -327,11 +333,11 @@ export function LimitsView({ overview }: { overview: DashboardOverview }) {
   return (
     <section className="grid gap-5 xl:grid-cols-[360px_1fr]">
       <Panel>
-        <p className="text-sm text-[#6b7280]">Current plan</p>
+        <p className="text-sm text-muted-foreground">Current plan</p>
         <h2 className="mt-1 text-2xl font-semibold">
           {tenantModeLabel(overview.tenant.mode)}
         </h2>
-        <p className="mt-2 text-sm text-[#6b7280]">
+        <p className="mt-2 text-sm text-muted-foreground">
           {controlPlaneDescription()}
         </p>
       </Panel>
@@ -353,9 +359,9 @@ export function TeamView({ overview }: { overview: DashboardOverview }) {
       <Panel>
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold">Members</h2>
-          <button className="rounded-md bg-[#1a1d21] px-3 py-2 text-xs font-medium text-white">
+          <Button className="rounded-md" size="xs">
             Invite member
-          </button>
+          </Button>
         </div>
         <EmptyState
           body="The first owner account is active. Team invitations will be stored through the auth adapter next."
@@ -391,11 +397,11 @@ function EmptyPlatform({ overview }: { overview: DashboardOverview }) {
   return (
     <section className="grid gap-5 lg:grid-cols-[1fr_380px]">
       <Panel className="p-8">
-        <div className="flex size-11 items-center justify-center rounded-md bg-[#eef1fe] text-[#3730a3]">
+        <div className="flex size-11 items-center justify-center rounded-md bg-muted text-foreground">
           <Boxes size={20} />
         </div>
         <h2 className="mt-5 text-2xl font-semibold">Create your first app</h2>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-[#6b7280]">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
           The platform is running with {databaseLabel()} and Better Auth. No demo data is
           loaded; once an app is created, the gateway can report realtime
           usage, webhooks, channels, and event metadata into this store.
@@ -430,60 +436,13 @@ function Metrics({ overview }: { overview: DashboardOverview }) {
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map(([label, value, hint]) => (
         <Panel className="p-4" key={label}>
-          <p className="text-sm text-[#6b7280]">{label}</p>
+          <p className="text-sm text-muted-foreground">{label}</p>
           <p className="mt-2 text-2xl font-semibold">{value}</p>
-          <p className="mt-2 text-xs text-[#6b7280]">{hint}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
         </Panel>
       ))}
     </section>
   );
-}
-
-function UsageChart({
-  metric = "connections",
-  title = "Connections · last 24h",
-  usage,
-}: {
-  metric?: "connections" | "messages";
-  title?: string;
-  usage: UsagePoint[];
-}) {
-  const max = Math.max(1, ...usage.map((point) => point[metric]));
-
-  return (
-    <Panel>
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <span className="text-xs text-[#6b7280]">{metric}</span>
-      </div>
-      <div className="mt-5 flex h-56 items-end gap-2 border-b border-[#eceef0]">
-        {usage.length === 0 ? (
-          <div className="flex h-full w-full items-center justify-center text-sm text-[#8a9099]">
-            Waiting for gateway usage reports
-          </div>
-        ) : (
-          usage.map((point) => (
-            <div className="flex flex-1 flex-col items-center gap-2" key={point.hour}>
-              <div
-                className="w-full rounded-t bg-[#4f46e5]"
-                style={{ height: `${Math.max(8, (point[metric] / max) * 190)}px` }}
-              />
-              <span className="text-[11px] text-[#8a9099]">
-                {formatUsageHour(point.hour)}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-    </Panel>
-  );
-}
-
-function formatUsageHour(hour: string) {
-  const date = new Date(hour);
-  if (Number.isNaN(date.getTime())) return hour;
-
-  return `${String(date.getUTCHours()).padStart(2, "0")}:00`;
 }
 
 function usageRangeLabel(range: UsageRange) {
@@ -518,41 +477,42 @@ function AppsTable({ apps }: { apps: RealtimeApp[] }) {
   return (
     <Panel>
       <h2 className="text-sm font-semibold">{apps.length} apps in this instance</h2>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="text-xs text-[#6b7280]">
-            <tr>
-              <th className="py-2 font-medium">App</th>
-              <th className="py-2 font-medium">App ID</th>
-              <th className="py-2 font-medium">Cluster</th>
-              <th className="py-2 font-medium">Conns</th>
-              <th className="py-2 font-medium">Msgs today</th>
-              <th className="py-2 font-medium">Status</th>
-              <th className="py-2 font-medium" />
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-4">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>App</TableHead>
+              <TableHead>App ID</TableHead>
+              <TableHead>Cluster</TableHead>
+              <TableHead>Conns</TableHead>
+              <TableHead>Msgs today</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {apps.map((app) => (
-              <tr className="border-t border-[#eceef0]" key={app.appId}>
-                <td className="py-3 font-medium">{app.name}</td>
-                <td className="py-3 text-[#6b7280]">{app.appId}</td>
-                <td className="py-3">{app.cluster}</td>
-                <td className="py-3">{app.activeConnections.toLocaleString()}</td>
-                <td className="py-3">{app.messagesToday.toLocaleString()}</td>
-                <td className="py-3">{app.status}</td>
-                <td className="py-3 text-right">
-                  <Link
-                    className="inline-flex items-center gap-1 rounded-md border border-[#d4d7db] px-2 py-1 text-xs text-[#4b5563] hover:bg-[#f4f5f6]"
-                    href={`/credentials?app=${encodeURIComponent(app.appId)}`}
-                  >
-                    <KeyRound size={13} />
-                    Keys
-                  </Link>
-                </td>
-              </tr>
+              <TableRow key={app.appId}>
+                <TableCell className="font-medium">{app.name}</TableCell>
+                <TableCell className="text-muted-foreground">{app.appId}</TableCell>
+                <TableCell>{app.cluster}</TableCell>
+                <TableCell>{app.activeConnections.toLocaleString()}</TableCell>
+                <TableCell>{app.messagesToday.toLocaleString()}</TableCell>
+                <TableCell>
+                  <Badge variant="outline">{app.status}</Badge>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button asChild className="rounded-md" size="xs" variant="outline">
+                    <Link href={`/credentials?app=${encodeURIComponent(app.appId)}`}>
+                      <KeyRound size={13} />
+                      Keys
+                    </Link>
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
         {apps.length === 0 ? (
           <EmptyState
             body="Create an app to issue Pusher-compatible keys and start accepting connections."
@@ -585,7 +545,7 @@ function Credentials({
       <h2 className="text-sm font-semibold">
         {app ? `${app.name} keys` : "App keys"}
       </h2>
-      <p className="mt-1 text-sm text-[#6b7280]">
+      <p className="mt-1 text-sm text-muted-foreground">
         Pusher-compatible credentials. Keep your secret private.
       </p>
       <div className="mt-4 space-y-3">
@@ -613,9 +573,9 @@ function WebhookPanel({
     <Panel>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">Webhooks</h2>
-        <button className="rounded-md border border-[#d4d7db] px-3 py-1.5 text-xs">
+        <Button className="rounded-md" size="xs" variant="outline">
           Add endpoint
-        </button>
+        </Button>
       </div>
       <div className="mt-4 space-y-3">
         {webhooks.length === 0 ? (
@@ -625,12 +585,12 @@ function WebhookPanel({
           />
         ) : (
           webhooks.slice(0, compact ? 2 : undefined).map((webhook) => (
-            <div className="rounded-md border border-[#eceef0] p-3" key={webhook.id}>
+            <div className="rounded-md border p-3" key={webhook.id}>
               <div className="flex items-center justify-between gap-3">
                 <p className="truncate text-sm font-medium">{webhook.url}</p>
-                <span className="text-xs text-[#6b7280]">{webhook.status}</span>
+                <Badge variant="outline">{webhook.status}</Badge>
               </div>
-              <p className="mt-1 text-xs text-[#6b7280]">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {webhook.enabledEvents.join(", ")}
               </p>
             </div>
@@ -646,9 +606,7 @@ function EventsPanel({ events }: { events: RealtimeEvent[] }) {
     <Panel>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold">Recent realtime events</h2>
-        <span className="rounded-md bg-[#f0faf3] px-2 py-1 text-xs text-[#15803d]">
-          Live
-        </span>
+        <Badge variant="secondary">Live</Badge>
       </div>
       <div className="mt-4 space-y-2">
         {events.length === 0 ? (
@@ -659,9 +617,9 @@ function EventsPanel({ events }: { events: RealtimeEvent[] }) {
         ) : (
           events.map((event) => (
             <div className="grid min-w-0 grid-cols-[52px_minmax(0,1fr)_auto] gap-3 text-sm" key={event.id}>
-              <span className="text-[#8a9099]">{event.time}</span>
+              <span className="text-muted-foreground">{event.time}</span>
               <span className="min-w-0 break-all">{event.channel}</span>
-              <span className="text-[#6b7280]">{event.status}</span>
+              <span className="text-muted-foreground">{event.status}</span>
             </div>
           ))
         )}
@@ -679,7 +637,7 @@ function PresencePanel({ channels }: { channels: ChannelSummary[] }) {
         Presence members · {presence?.subscriptions ?? 0}
       </h2>
       {presence ? (
-        <p className="mt-4 text-sm text-[#6b7280]">
+        <p className="mt-4 text-sm text-muted-foreground">
           Presence member details will appear here once the gateway reports
           member state for {presence.name}.
         </p>
@@ -706,7 +664,7 @@ function BreakdownPanel() {
       <h2 className="text-sm font-semibold">Breakdown by event type</h2>
       <div className="mt-4 space-y-2">
         {rows.map(([name, value]) => (
-          <div className="flex justify-between rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm" key={name}>
+          <div className="flex justify-between rounded-md border bg-muted/40 px-3 py-2 text-sm" key={name}>
             <span>{name}</span>
             <span className="font-medium">{value}</span>
           </div>
@@ -728,9 +686,9 @@ function TopChannels({ channels }: { channels: ChannelSummary[] }) {
           />
         ) : (
           channels.map((channel) => (
-            <div className="rounded-md border border-[#eceef0] p-3" key={channel.name}>
+            <div className="rounded-md border p-3" key={channel.name}>
               <p className="truncate text-sm font-medium">{channel.name}</p>
-              <p className="mt-1 text-xs text-[#6b7280]">{channel.type}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{channel.type}</p>
               <p className="mt-3 text-sm">
                 {channel.subscriptions.toLocaleString()} subs ·{" "}
                 {channel.messagesPerSecond}/s
@@ -746,10 +704,10 @@ function TopChannels({ channels }: { channels: ChannelSummary[] }) {
 function CodeBlock({ label, value }: { label: string; value: string }) {
   return (
     <div className="mt-4">
-      <div className="mb-2 flex items-center justify-between text-xs text-[#6b7280]">
+      <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
         <span>{label}</span>
       </div>
-      <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-[#0e1117] p-4 text-xs leading-6 text-[#c9d1d9]">
+      <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md border bg-muted p-4 text-xs leading-6 text-foreground">
         <code>{value}</code>
       </pre>
     </div>
