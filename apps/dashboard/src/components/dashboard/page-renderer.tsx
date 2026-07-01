@@ -16,7 +16,7 @@ import {
   UsageView,
   WebhooksView,
 } from "@/components/dashboard/views";
-import type { DashboardOverview } from "@/lib/orchestrator/types";
+import type { DashboardOverview, UsageRange } from "@/lib/orchestrator/types";
 
 export type DashboardRoute =
   | "overview"
@@ -49,14 +49,16 @@ export async function renderDashboardPage(
 
   const params = searchParams ? await searchParams : {};
   const selectedAppId = firstParam(params.app);
+  const usageRange = parseUsageRange(firstParam(params.range));
   const overview = await getDashboardOrchestratorStore().getOverview(
     session.tenantId || getSelfHostedTenantId(),
     selectedAppId,
+    { usageRange },
   );
 
   return (
     <DashboardShell activeRoute={route} overview={overview}>
-      {renderRoute(route, overview)}
+      {renderRoute(route, overview, usageRange)}
     </DashboardShell>
   );
 }
@@ -68,6 +70,7 @@ function firstParam(value: string | string[] | undefined) {
 function renderRoute(
   route: DashboardRoute,
   overview: DashboardOverview,
+  usageRange: UsageRange,
 ) {
   switch (route) {
     case "activity":
@@ -75,7 +78,7 @@ function renderRoute(
     case "channels":
       return <ChannelsView overview={overview} />;
     case "usage":
-      return <UsageView overview={overview} />;
+      return <UsageView overview={overview} usageRange={usageRange} />;
     case "apps":
       return <AppsView overview={overview} />;
     case "credentials":
@@ -89,5 +92,17 @@ function renderRoute(
     case "overview":
     default:
       return <OverviewView overview={overview} />;
+  }
+}
+
+function parseUsageRange(value: string | undefined): UsageRange {
+  switch (value) {
+    case "1h":
+    case "7d":
+    case "30d":
+      return value;
+    case "24h":
+    default:
+      return "24h";
   }
 }

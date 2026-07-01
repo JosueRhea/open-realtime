@@ -12,6 +12,7 @@ import type {
   ChannelSummary,
   CreatedRealtimeApp,
   DashboardOverview,
+  DashboardOverviewOptions,
   EventReportInput,
   GatewayAppCredential,
   OrchestratorStore,
@@ -162,14 +163,20 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
       .map((row) => mapTenantMembership(row as TenantMembershipRow));
   }
 
-  getOverview(tenantId: string, appId?: string): DashboardOverview {
+  getOverview(
+    tenantId: string,
+    appId?: string,
+    options: DashboardOverviewOptions = {},
+  ): DashboardOverview {
     const tenant = this.getTenant(tenantId) ?? defaultTenant(tenantId);
     const apps = this.listApps(tenant.id);
     const currentApp = apps.find((app) => app.appId === appId) ?? apps[0] ?? null;
     const gatewayApps = this.listGatewayApps(tenant.id);
 
     const webhooks = currentApp ? this.listWebhooks(tenant.id, currentApp.appId) : [];
-    const usage = currentApp ? this.listUsage(tenant.id, currentApp.appId) : [];
+    const usage = currentApp
+      ? this.listUsage(tenant.id, currentApp.appId, usageBucketLimit(options.usageRange))
+      : [];
     const events = currentApp ? this.listEvents(tenant.id, currentApp.appId) : [];
     const channels = currentApp
       ? this.listChannels(tenant.id, currentApp.appId)
@@ -624,17 +631,21 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
       });
   }
 
-  private listUsage(tenantId: string, appId: string): UsagePoint[] {
+  private listUsage(
+    tenantId: string,
+    appId: string,
+    limit: number,
+  ): UsagePoint[] {
     return this.db
       .prepare(
         `select * from (
            select * from usage_hourly
            where tenant_id = ? and app_id = ?
            order by hour desc
-           limit 24
+           limit ?
          ) order by hour`,
       )
-      .all(tenantId, appId)
+      .all(tenantId, appId, limit)
       .map((row) => {
         const usage = row as UsageRow;
 
@@ -810,6 +821,20 @@ function mapTenantMembership(row: TenantMembershipRow): TenantMembership {
     role: row.role,
     createdAt: row.created_at,
   };
+}
+
+function usageBucketLimit(range: DashboardOverviewOptions["usageRange"]) {
+  switch (range) {
+    case "1h":
+      return 1;
+    case "7d":
+      return 24 * 7;
+    case "30d":
+      return 24 * 30;
+    case "24h":
+    default:
+      return 24;
+  }
 }
 
 function mapApp(row: AppRow): RealtimeApp {

@@ -173,9 +173,6 @@ export function DashboardShell({
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="hidden rounded-md border border-[#d4d7db] bg-white px-3 py-2 text-xs text-[#4b5563] sm:inline-flex">
-                  1H 24H 7D 30D
-                </span>
                 <Link
                   className="inline-flex items-center gap-2 rounded-md bg-[#1a1d21] px-3 py-2 text-sm font-medium text-white"
                   href={`/apps${selectedAppQuery}`}

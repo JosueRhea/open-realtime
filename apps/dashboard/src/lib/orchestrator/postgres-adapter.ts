@@ -14,6 +14,7 @@ import type {
   ChannelSummary,
   CreatedRealtimeApp,
   DashboardOverview,
+  DashboardOverviewOptions,
   EventReportInput,
   GatewayAppCredential,
   RealtimeApp,
@@ -170,14 +171,18 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
     return rows.map(mapTenantMembership);
   }
 
-  async getOverview(tenantId: string, appId?: string): Promise<DashboardOverview> {
+  async getOverview(
+    tenantId: string,
+    appId?: string,
+    options: DashboardOverviewOptions = {},
+  ): Promise<DashboardOverview> {
     const tenant = (await this.getTenant(tenantId)) ?? defaultTenant(tenantId);
     const apps = await this.listApps(tenant.id);
     const currentApp = apps.find((app) => app.appId === appId) ?? apps[0] ?? null;
     const [webhooks, usage, events, channels, apiTokens, gatewayApps] = currentApp
       ? await Promise.all([
           this.listWebhooks(tenant.id, currentApp.appId),
-          this.listUsage(tenant.id, currentApp.appId),
+          this.listUsage(tenant.id, currentApp.appId, usageBucketLimit(options.usageRange)),
           this.listEvents(tenant.id, currentApp.appId),
           this.listChannels(tenant.id, currentApp.appId),
           this.listApiTokens(tenant.id),
@@ -436,13 +441,17 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
     return tenant;
   }
 
-  private async listUsage(tenantId: string, appId: string): Promise<UsagePoint[]> {
+  private async listUsage(
+    tenantId: string,
+    appId: string,
+    limit: number,
+  ): Promise<UsagePoint[]> {
     const rows = await this.sql<UsageRow[]>`
       select * from (
         select * from usage_hourly
         where tenant_id = ${tenantId} and app_id = ${appId}
         order by hour desc
-        limit 24
+        limit ${limit}
       ) as recent_usage
       order by hour
     `;
@@ -470,6 +479,20 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
     if (rows.length === 0) {
       throw new Error(`App ${appId} was not found for tenant ${tenantId}`);
     }
+  }
+}
+
+function usageBucketLimit(range: DashboardOverviewOptions["usageRange"]) {
+  switch (range) {
+    case "1h":
+      return 1;
+    case "7d":
+      return 24 * 7;
+    case "30d":
+      return 24 * 30;
+    case "24h":
+    default:
+      return 24;
   }
 }
 

@@ -24,6 +24,7 @@ import type {
   GatewayAppCredential,
   RealtimeApp,
   RealtimeEvent,
+  UsageRange,
   UsagePoint,
   WebhookEndpoint,
 } from "@/lib/orchestrator/types";
@@ -145,19 +146,84 @@ export function ChannelsView({ overview }: { overview: DashboardOverview }) {
   );
 }
 
-export function UsageView({ overview }: { overview: DashboardOverview }) {
+export function UsageView({
+  overview,
+  usageRange,
+}: {
+  overview: DashboardOverview;
+  usageRange: UsageRange;
+}) {
   return (
     <>
+      <UsageRangeSelector
+        currentAppId={overview.currentApp?.appId ?? null}
+        value={usageRange}
+      />
       <Metrics overview={overview} />
       <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
-        <UsageChart usage={overview.usage} title="Connections · 7d" />
-        <UsageChart usage={overview.usage} metric="messages" title="Messages · per hour" />
+        <UsageChart
+          usage={overview.usage}
+          title={`Connections · ${usageRangeLabel(usageRange)}`}
+        />
+        <UsageChart
+          usage={overview.usage}
+          metric="messages"
+          title={`Messages · ${usageRangeLabel(usageRange)}`}
+        />
       </section>
       <section className="grid gap-5 xl:grid-cols-[0.8fr_1fr]">
         <BreakdownPanel />
         <TopChannels channels={overview.channels} />
       </section>
     </>
+  );
+}
+
+function UsageRangeSelector({
+  currentAppId,
+  value,
+}: {
+  currentAppId: string | null;
+  value: UsageRange;
+}) {
+  const ranges: Array<{ label: string; value: UsageRange }> = [
+    { label: "1H", value: "1h" },
+    { label: "24H", value: "24h" },
+    { label: "7D", value: "7d" },
+    { label: "30D", value: "30d" },
+  ];
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <div>
+        <h2 className="text-sm font-semibold">Usage window</h2>
+        <p className="mt-1 text-sm text-[#6b7280]">
+          Connections and messages for the selected app.
+        </p>
+      </div>
+      <div className="inline-flex rounded-md border border-[#d4d7db] bg-white p-1">
+        {ranges.map((range) => {
+          const active = range.value === value;
+          const params = new URLSearchParams({ range: range.value });
+          if (currentAppId) params.set("app", currentAppId);
+
+          return (
+            <Link
+              className={[
+                "rounded px-3 py-1.5 text-xs font-medium",
+                active
+                  ? "bg-[#1a1d21] text-white"
+                  : "text-[#4b5563] hover:bg-[#f4f5f6]",
+              ].join(" ")}
+              href={`/usage?${params.toString()}`}
+              key={range.value}
+            >
+              {range.label}
+            </Link>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -418,6 +484,20 @@ function formatUsageHour(hour: string) {
   if (Number.isNaN(date.getTime())) return hour;
 
   return `${String(date.getUTCHours()).padStart(2, "0")}:00`;
+}
+
+function usageRangeLabel(range: UsageRange) {
+  switch (range) {
+    case "1h":
+      return "last hour";
+    case "7d":
+      return "last 7 days";
+    case "30d":
+      return "last 30 days";
+    case "24h":
+    default:
+      return "last 24 hours";
+  }
 }
 
 function HealthPanel({ overview }: { overview: DashboardOverview }) {

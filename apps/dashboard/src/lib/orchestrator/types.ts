@@ -62,6 +62,8 @@ export type UsagePoint = {
   webhookFailures: number;
 };
 
+export type UsageRange = "1h" | "24h" | "7d" | "30d";
+
 export type RealtimeEvent = {
   id: string;
   tenantId: string;
@@ -150,6 +152,10 @@ export type DashboardOverview = {
   };
 };
 
+export type DashboardOverviewOptions = {
+  usageRange?: UsageRange;
+};
+
 export interface OrchestratorStore {
   ensureTenantForUser(input: {
     userId: string;
@@ -158,7 +164,11 @@ export interface OrchestratorStore {
     tenantId?: string;
   }): TenantMembership;
   listTenantMemberships(userId: string): TenantMembership[];
-  getOverview(tenantId: string, appId?: string): DashboardOverview;
+  getOverview(
+    tenantId: string,
+    appId?: string,
+    options?: DashboardOverviewOptions,
+  ): DashboardOverview;
   listApps(tenantId: string): RealtimeApp[];
   listGatewayApps(tenantId: string): GatewayAppCredential[];
   createApp(input: { tenantId: string; name: string }): CreatedRealtimeApp;

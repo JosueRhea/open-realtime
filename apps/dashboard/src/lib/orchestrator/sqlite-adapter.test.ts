@@ -156,7 +156,7 @@ describe("SqliteOrchestratorStore", () => {
     expect(overview.webhooks).toHaveLength(1);
   });
 
-  it("returns the latest 24 usage buckets in chronological order", () => {
+  it("returns usage buckets for the selected range in chronological order", () => {
     const store = createStore();
     const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
 
@@ -175,6 +175,13 @@ describe("SqliteOrchestratorStore", () => {
     expect(overview.usage).toHaveLength(24);
     expect(overview.usage[0]?.hour).toBe("2026-06-07T00:00:00.000Z");
     expect(overview.usage.at(-1)?.hour).toBe("2026-06-30T00:00:00.000Z");
+
+    expect(store.getOverview("tenant-1", app.appId, { usageRange: "1h" }).usage)
+      .toHaveLength(1);
+    expect(store.getOverview("tenant-1", app.appId, { usageRange: "7d" }).usage)
+      .toHaveLength(30);
+    expect(store.getOverview("tenant-1", app.appId, { usageRange: "30d" }).usage)
+      .toHaveLength(30);
   });
 
   it("aggregates connection deltas instead of trusting one gateway instance", () => {

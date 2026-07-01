@@ -2,6 +2,7 @@ import { SqliteOrchestratorStore } from "@/lib/orchestrator/sqlite-adapter";
 import type { AsyncOrchestratorStore } from "@/lib/orchestrator/async-types";
 import type {
   ChannelReportInput,
+  DashboardOverviewOptions,
   EventReportInput,
   UsageReportInput,
 } from "@/lib/orchestrator/types";
@@ -22,8 +23,12 @@ export class SqliteAsyncOrchestratorStore implements AsyncOrchestratorStore {
     return this.store.listTenantMemberships(userId);
   }
 
-  async getOverview(tenantId: string, appId?: string) {
-    return this.store.getOverview(tenantId, appId);
+  async getOverview(
+    tenantId: string,
+    appId?: string,
+    options?: DashboardOverviewOptions,
+  ) {
+    return this.store.getOverview(tenantId, appId, options);
   }
 
   async listApps(tenantId: string) {
