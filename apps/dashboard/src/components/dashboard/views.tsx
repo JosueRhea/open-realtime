@@ -412,21 +412,19 @@ function EmptyPlatform({ overview }: { overview: DashboardOverview }) {
 }
 
 function Metrics({ overview }: { overview: DashboardOverview }) {
-  const source = overview.observability.configured ? "Axiom" : "Axiom required";
   const metrics = [
-    ["Active connections", overview.totals.activeConnections.toLocaleString(), source],
-    ["Messages today", overview.totals.messagesToday.toLocaleString(), source],
-    ["Peak connections", overview.totals.peakConnections.toLocaleString(), "current window"],
-    ["Webhook failures", overview.totals.webhookFailures.toLocaleString(), "delivery logs"],
+    ["Connections", overview.totals.activeConnections.toLocaleString()],
+    ["Messages", overview.totals.messagesToday.toLocaleString()],
+    ["Peak connections", overview.totals.peakConnections.toLocaleString()],
+    ["Webhook failures", overview.totals.webhookFailures.toLocaleString()],
   ];
 
   return (
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {metrics.map(([label, value, hint]) => (
+      {metrics.map(([label, value]) => (
         <Panel className="p-4" key={label}>
           <p className="text-sm text-muted-foreground">{label}</p>
           <p className="mt-2 text-2xl font-semibold">{value}</p>
-          <p className="mt-2 text-xs text-muted-foreground">{hint}</p>
         </Panel>
       ))}
     </section>

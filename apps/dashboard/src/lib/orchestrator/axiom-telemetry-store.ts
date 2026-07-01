@@ -250,6 +250,7 @@ export class AxiomTelemetryClient {
   private async activeConnections(input: {
     tenantId: string;
     appId: string;
+    usageRange: UsageRange;
   }): Promise<number> {
     const rows = await this.queryRows(
       [
@@ -262,7 +263,7 @@ export class AxiomTelemetryClient {
           "closed=countif(event == 'connection.closed')",
         ].join(" "),
       ].join(" | "),
-      "now-30d",
+      rangeStartTime(input.usageRange),
     );
     const row = rows[0];
     if (!row) return 0;
@@ -320,6 +321,7 @@ export class AxiomTelemetryClient {
   private async messagesToday(input: {
     tenantId: string;
     appId: string;
+    usageRange: UsageRange;
   }): Promise<number> {
     const rows = await this.queryRows(
       [
@@ -328,7 +330,7 @@ export class AxiomTelemetryClient {
         "where event == 'message.delivered'",
         "summarize messages=count()",
       ].join(" | "),
-      "now-24h",
+      rangeStartTime(input.usageRange),
     );
     return numberValue(rows[0]?.messages);
   }
@@ -336,6 +338,7 @@ export class AxiomTelemetryClient {
   private async webhookFailures(input: {
     tenantId: string;
     appId: string;
+    usageRange: UsageRange;
   }): Promise<number> {
     const rows = await this.queryRows(
       [
@@ -344,7 +347,7 @@ export class AxiomTelemetryClient {
         "where event == 'webhook.delivery_failed'",
         "summarize failures=count()",
       ].join(" | "),
-      "now-30d",
+      rangeStartTime(input.usageRange),
     );
     return numberValue(rows[0]?.failures);
   }

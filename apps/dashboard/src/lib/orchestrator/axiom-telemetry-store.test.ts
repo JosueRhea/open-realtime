@@ -79,7 +79,7 @@ describe("AxiomTelemetryClient", () => {
     const overview = await client.overview({
       tenantId: "tenant-1",
       appId: "app-1",
-      usageRange: "24h",
+      usageRange: "1h",
     });
 
     expect(overview.usage).toEqual([
@@ -117,10 +117,19 @@ describe("AxiomTelemetryClient", () => {
     expect(overview.webhookFailures).toBe(1);
     expect(requests[0]).toMatchObject({
       url: "https://axiom.example/v1/datasets/_apl?format=tabular",
-      body: { startTime: "now-24h" },
+      body: { startTime: "now-1h" },
     });
     expect(requests[0].body.apl).toContain('["open-realtime"]');
     expect(requests[0].body.apl).toContain('app_id == "app-1"');
+    expect(
+      requests
+        .filter((request) =>
+          request.body.apl.includes("opened=countif") ||
+          request.body.apl.includes("event == 'message.delivered'") ||
+          request.body.apl.includes("event == 'webhook.delivery_failed'"),
+        )
+        .every((request) => request.body.startTime === "now-1h"),
+    ).toBe(true);
   });
 
   it("marks dashboard observability as configured when Axiom is connected", async () => {
