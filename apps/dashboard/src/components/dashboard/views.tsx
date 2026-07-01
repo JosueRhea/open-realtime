@@ -381,7 +381,7 @@ function EmptyPlatform({ overview }: { overview: DashboardOverview }) {
 function Metrics({ overview }: { overview: DashboardOverview }) {
   const metrics = [
     ["Active connections", overview.totals.activeConnections.toLocaleString(), "reported by gateway"],
-    ["Messages today", overview.totals.messagesToday.toLocaleString(), "all apps"],
+    ["Messages today", overview.totals.messagesToday.toLocaleString(), "selected app"],
     ["Peak connections", overview.totals.peakConnections.toLocaleString(), "current window"],
     ["Webhook failures", overview.totals.webhookFailures.toLocaleString(), "needs attention"],
   ];

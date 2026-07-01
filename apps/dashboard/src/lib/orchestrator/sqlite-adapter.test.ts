@@ -80,6 +80,13 @@ describe("SqliteOrchestratorStore", () => {
 
     store.reportUsage({
       tenantId: "tenant-1",
+      appId: firstApp.appId,
+      hour: "13:00",
+      connections: 3,
+      messages: 46,
+    });
+    store.reportUsage({
+      tenantId: "tenant-1",
       appId: secondApp.appId,
       hour: "13:00",
       connections: 7,
@@ -89,6 +96,7 @@ describe("SqliteOrchestratorStore", () => {
     const overview = store.getOverview("tenant-1", secondApp.appId);
 
     expect(overview.currentApp?.appId).toBe(secondApp.appId);
+    expect(overview.totals.messagesToday).toBe(11);
     expect(overview.usage).toEqual([
       expect.objectContaining({ appId: secondApp.appId, connections: 7 }),
     ]);

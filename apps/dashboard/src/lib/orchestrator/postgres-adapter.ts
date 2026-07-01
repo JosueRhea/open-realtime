@@ -206,7 +206,7 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
       apiTokens,
       totals: {
         activeConnections: currentApp?.activeConnections ?? 0,
-        messagesToday: apps.reduce((sum, app) => sum + app.messagesToday, 0),
+        messagesToday: currentApp?.messagesToday ?? 0,
         peakConnections,
         webhookFailures: webhooks.reduce((sum, webhook) => sum + webhook.failureCount, 0),
       },
