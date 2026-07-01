@@ -173,12 +173,14 @@ export function UsageView({
       <Metrics overview={overview} />
       <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
         <UsageChart
+          range={usageRange}
           usage={overview.usage}
           title={`Connections · ${usageRangeLabel(usageRange)}`}
         />
         <UsageChart
           usage={overview.usage}
           metric="messages"
+          range={usageRange}
           title={`Messages · ${usageRangeLabel(usageRange)}`}
         />
       </section>

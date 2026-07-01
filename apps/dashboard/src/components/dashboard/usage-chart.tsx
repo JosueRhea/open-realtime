@@ -9,18 +9,20 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import type { UsagePoint } from "@/lib/orchestrator/types";
+import type { UsagePoint, UsageRange } from "@/lib/orchestrator/types";
 
 export function UsageChart({
   metric = "connections",
+  range = "24h",
   title = "Connections · last 24h",
   usage,
 }: {
   metric?: "connections" | "messages";
+  range?: UsageRange;
   title?: string;
   usage: UsagePoint[];
 }) {
-  const chartData = buildUsageChartData(usage, metric);
+  const chartData = buildUsageChartData(usage, metric, range);
   const chartConfig = {
     value: {
       label: metric === "connections" ? "Connections" : "Messages",
@@ -78,6 +80,7 @@ export function UsageChart({
               <Bar
                 dataKey="value"
                 fill="var(--color-value)"
+                minPointSize={2}
                 radius={[4, 4, 0, 0]}
               />
             </BarChart>
@@ -91,50 +94,114 @@ export function UsageChart({
 function buildUsageChartData(
   usage: UsagePoint[],
   metric: "connections" | "messages",
+  range: UsageRange,
 ) {
-  const maxBars = usage.length > 240 ? 60 : usage.length > 72 ? 48 : 36;
-  const bucketSize = Math.max(1, Math.ceil(usage.length / maxBars));
-  const buckets: UsagePoint[][] = [];
+  const buckets = buildRangeBuckets(range, usage);
 
-  usage.forEach((point, index) => {
-    const bucketIndex = Math.floor(index / bucketSize);
-    buckets[bucketIndex] = buckets[bucketIndex] ?? [];
-    buckets[bucketIndex].push(point);
+  usage.forEach((point) => {
+    const pointTime = new Date(point.hour).getTime();
+    if (Number.isNaN(pointTime)) return;
+
+    const bucket = buckets.find(
+      (candidate) => pointTime >= candidate.start && pointTime < candidate.end,
+    );
+    bucket?.points.push(point);
   });
 
   return buckets.map((bucket) => {
-    const first = bucket[0];
-    const last = bucket[bucket.length - 1];
-    const value = Math.round(
-      bucket.reduce((sum, point) => sum + point[metric], 0) / bucket.length,
-    );
+    const value = bucket.points.length
+      ? aggregateBucketValue(bucket.points, metric)
+      : 0;
 
     return {
-      label: formatUsageHour(first.hour),
-      tooltipLabel:
-        first.hour === last.hour
-          ? formatUsageTooltip(first.hour)
-          : `${formatUsageTooltip(first.hour)} - ${formatUsageTooltip(last.hour)}`,
+      label: formatBucketLabel(bucket.start, range),
+      tooltipLabel: `${formatUsageTooltip(bucket.start)} - ${formatUsageTooltip(bucket.end)}`,
       value,
     };
   });
 }
 
-function formatUsageHour(hour: string) {
-  const date = new Date(hour);
-  if (Number.isNaN(date.getTime())) return hour;
+function buildRangeBuckets(range: UsageRange, usage: UsagePoint[]) {
+  const { bucketCount, bucketMs } = rangeBucketConfig(range);
+  const latestUsageTime = Math.max(
+    ...usage
+      .map((point) => new Date(point.hour).getTime())
+      .filter((time) => !Number.isNaN(time)),
+  );
+  const anchor = Number.isFinite(latestUsageTime)
+    ? latestUsageTime
+    : Date.now();
+  const end = alignRangeEnd(anchor, range, bucketMs);
+  const start = end - bucketCount * bucketMs;
 
-  return `${String(date.getUTCHours()).padStart(2, "0")}:00`;
+  return Array.from({ length: bucketCount }, (_, index) => ({
+    end: start + (index + 1) * bucketMs,
+    points: [] as UsagePoint[],
+    start: start + index * bucketMs,
+  }));
 }
 
-function formatUsageTooltip(hour: string) {
-  const date = new Date(hour);
-  if (Number.isNaN(date.getTime())) return hour;
+function rangeBucketConfig(range: UsageRange) {
+  switch (range) {
+    case "1h":
+      return { bucketCount: 12, bucketMs: 5 * 60 * 1000 };
+    case "7d":
+      return { bucketCount: 42, bucketMs: 4 * 60 * 60 * 1000 };
+    case "30d":
+      return { bucketCount: 60, bucketMs: 12 * 60 * 60 * 1000 };
+    case "24h":
+    default:
+      return { bucketCount: 24, bucketMs: 60 * 60 * 1000 };
+  }
+}
 
+function alignRangeEnd(anchor: number, range: UsageRange, bucketMs: number) {
+  const date = new Date(anchor);
+
+  if (range === "1h") {
+    date.setUTCSeconds(0, 0);
+    const minutes = date.getUTCMinutes();
+    date.setUTCMinutes(Math.floor(minutes / 5) * 5 + 5);
+    return date.getTime();
+  }
+
+  return Math.floor(anchor / bucketMs) * bucketMs + bucketMs;
+}
+
+function aggregateBucketValue(
+  points: UsagePoint[],
+  metric: "connections" | "messages",
+) {
+  const sum = points.reduce((total, point) => total + point[metric], 0);
+
+  if (metric === "messages") {
+    return sum;
+  }
+
+  return Math.round(sum / points.length);
+}
+
+function formatBucketLabel(time: number, range: UsageRange) {
+  const date = new Date(time);
+
+  if (range === "7d" || range === "30d") {
+    return new Intl.DateTimeFormat("en", {
+      day: "2-digit",
+      month: "short",
+    }).format(date);
+  }
+
+  return [
+    String(date.getUTCHours()).padStart(2, "0"),
+    String(date.getUTCMinutes()).padStart(2, "0"),
+  ].join(":");
+}
+
+function formatUsageTooltip(time: number) {
   return new Intl.DateTimeFormat("en", {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     month: "short",
-  }).format(date);
+  }).format(new Date(time));
 }
