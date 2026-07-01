@@ -58,10 +58,6 @@ export class AxiomTelemetryOrchestratorStore implements AsyncOrchestratorStore {
         usageRange: options.usageRange ?? "24h",
       });
       const usage = telemetry.usage;
-      const peakConnections = Math.max(
-        telemetry.activeConnections,
-        ...usage.map((point) => point.connections),
-      );
 
       return {
         ...overview,
@@ -74,7 +70,7 @@ export class AxiomTelemetryOrchestratorStore implements AsyncOrchestratorStore {
           ...overview.totals,
           activeConnections: telemetry.activeConnections,
           messagesToday: telemetry.messagesToday,
-          peakConnections,
+          peakConnections: telemetry.peakConnections,
           webhookFailures: telemetry.webhookFailures,
         },
       };
@@ -113,6 +109,7 @@ export class AxiomTelemetryClient {
     webhookLogs: WebhookDeliveryLog[];
     activeConnections: number;
     messagesToday: number;
+    peakConnections: number;
     webhookFailures: number;
   }> {
     const [
@@ -122,6 +119,7 @@ export class AxiomTelemetryClient {
       webhookLogs,
       activeConnections,
       messagesToday,
+      peakConnections,
       webhookFailures,
     ] =
       await Promise.all([
@@ -131,6 +129,7 @@ export class AxiomTelemetryClient {
         this.webhookLogs(input),
         this.activeConnections(input),
         this.messagesToday(input),
+        this.peakConnections(input),
         this.webhookFailures(input),
       ]);
 
@@ -141,6 +140,7 @@ export class AxiomTelemetryClient {
       webhookLogs,
       activeConnections,
       messagesToday,
+      peakConnections,
       webhookFailures,
     };
   }
@@ -333,6 +333,24 @@ export class AxiomTelemetryClient {
       rangeStartTime(input.usageRange),
     );
     return numberValue(rows[0]?.messages);
+  }
+
+  private async peakConnections(input: {
+    tenantId: string;
+    appId: string;
+    usageRange: UsageRange;
+  }): Promise<number> {
+    const rows = await this.queryRows(
+      [
+        this.datasetExpression,
+        `where ${this.appFilter(input)}`,
+        "where event == 'connection.opened'",
+        "summarize connections=count() by bin(_time, 1h)",
+        "summarize peak=max(connections)",
+      ].join(" | "),
+      rangeStartTime(input.usageRange),
+    );
+    return numberValue(rows[0]?.peak);
   }
 
   private async webhookFailures(input: {

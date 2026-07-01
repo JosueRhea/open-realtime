@@ -19,6 +19,10 @@ describe("AxiomTelemetryClient", () => {
         const body = JSON.parse(String(init?.body)) as { apl: string; startTime: string };
         requests.push({ url: String(url), body });
 
+        if (body.apl.includes("summarize peak=max(connections)")) {
+          return jsonTable(["peak"], [[6]]);
+        }
+
         if (body.apl.includes("by bin(_time, 1h)")) {
           return jsonTable(
             ["_time", "connections", "messages"],
@@ -114,6 +118,7 @@ describe("AxiomTelemetryClient", () => {
     });
     expect(overview.activeConnections).toBe(3);
     expect(overview.messagesToday).toBe(7);
+    expect(overview.peakConnections).toBe(6);
     expect(overview.webhookFailures).toBe(1);
     expect(requests[0]).toMatchObject({
       url: "https://axiom.example/v1/datasets/_apl?format=tabular",
@@ -143,6 +148,9 @@ describe("AxiomTelemetryClient", () => {
         fetchFn: async (_url, init) => {
           const body = JSON.parse(String(init?.body)) as { apl: string };
           if (body.apl.includes("by bin(_time, 1h)")) {
+            if (body.apl.includes("summarize peak=max(connections)")) {
+              return jsonTable(["peak"], [[3]]);
+            }
             return jsonTable(
               ["_time", "connections", "messages"],
               [["2026-07-01T10:00:00Z"], [3], [9]],
@@ -185,6 +193,7 @@ describe("AxiomTelemetryClient", () => {
     });
     expect(overview.totals.activeConnections).toBe(2);
     expect(overview.totals.messagesToday).toBe(9);
+    expect(overview.totals.peakConnections).toBe(3);
   });
 });
 
