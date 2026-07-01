@@ -23,7 +23,7 @@ describe("AxiomTelemetryClient", () => {
           return jsonTable(["peak"], [[6]]);
         }
 
-        if (body.apl.includes("by bin(_time, 1h)")) {
+        if (body.apl.includes("by bin(_time, 5m)")) {
           return jsonTable(
             ["_time", "connections", "messages"],
             [["2026-07-01T10:00:00Z"], [3], [9]],
@@ -126,6 +126,12 @@ describe("AxiomTelemetryClient", () => {
     });
     expect(requests[0].body.apl).toContain('["open-realtime"]');
     expect(requests[0].body.apl).toContain('app_id == "app-1"');
+    expect(requests[0].body.apl).toContain("by bin(_time, 5m)");
+    expect(
+      requests.find((request) =>
+        request.body.apl.includes("summarize peak=max(connections)"),
+      )?.body.apl,
+    ).toContain("by bin(_time, 5m)");
     expect(
       requests
         .filter((request) =>

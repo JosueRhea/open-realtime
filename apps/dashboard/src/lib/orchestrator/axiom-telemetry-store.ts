@@ -159,7 +159,7 @@ export class AxiomTelemetryClient {
           "summarize",
           "connections=countif(event == 'connection.opened'),",
           "messages=countif(event == 'message.delivered')",
-          "by bin(_time, 1h)",
+          `by bin(_time, ${rangeBucketSize(input.usageRange)})`,
         ].join(" "),
         "order by _time asc",
       ].join(" | "),
@@ -345,7 +345,7 @@ export class AxiomTelemetryClient {
         this.datasetExpression,
         `where ${this.appFilter(input)}`,
         "where event == 'connection.opened'",
-        "summarize connections=count() by bin(_time, 1h)",
+        `summarize connections=count() by bin(_time, ${rangeBucketSize(input.usageRange)})`,
         "summarize peak=max(connections)",
       ].join(" | "),
       rangeStartTime(input.usageRange),
@@ -445,6 +445,20 @@ function rangeStartTime(range: UsageRange): string {
     case "24h":
     default:
       return "now-24h";
+  }
+}
+
+function rangeBucketSize(range: UsageRange): string {
+  switch (range) {
+    case "1h":
+      return "5m";
+    case "7d":
+      return "4h";
+    case "30d":
+      return "12h";
+    case "24h":
+    default:
+      return "1h";
   }
 }
 
