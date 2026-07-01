@@ -203,7 +203,12 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
       usage,
       events,
       channels,
+      webhookLogs: [],
       apiTokens,
+      observability: {
+        provider: "axiom",
+        configured: false,
+      },
       totals: {
         activeConnections: currentApp?.activeConnections ?? 0,
         messagesToday: currentApp?.messagesToday ?? 0,

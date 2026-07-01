@@ -10,6 +10,7 @@ import {
   ChannelsView,
   CredentialsView,
   LimitsView,
+  ObservabilityNotice,
   OverviewView,
   TeamView,
   UsageView,
@@ -56,6 +57,7 @@ export async function renderDashboardPage(
 
   return (
     <DashboardShell activeRoute={route} overview={overview}>
+      {!overview.observability.configured ? <ObservabilityNotice /> : null}
       {renderRoute(route, overview, usageRange)}
     </DashboardShell>
   );

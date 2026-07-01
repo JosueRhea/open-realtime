@@ -74,7 +74,9 @@ export async function createContainer(config: RuntimeConfig) {
           })
       : new NoopWebhookDispatcher();
   const orchestratorReporter =
-    config.orchestrator.url && config.orchestrator.token
+    config.observability.driver !== "axiom" &&
+    config.orchestrator.url &&
+    config.orchestrator.token
       ? new HttpOrchestratorReporter({
           baseUrl: config.orchestrator.url,
           token: config.orchestrator.token,

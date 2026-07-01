@@ -1,4 +1,5 @@
 import { PostgresOrchestratorStore } from "@/lib/orchestrator/postgres-adapter";
+import { createAxiomTelemetryStore } from "@/lib/orchestrator/axiom-telemetry-store";
 import type { AsyncOrchestratorStore } from "@/lib/orchestrator/async-types";
 import { SqliteAsyncOrchestratorStore } from "@/lib/orchestrator/sqlite-async-adapter";
 
@@ -12,7 +13,7 @@ export function orchestratorStoreDriver(): OrchestratorStoreDriver {
 
 export function getAsyncOrchestratorStore(): AsyncOrchestratorStore {
   if (orchestratorStoreDriver() !== "postgres") {
-    return new SqliteAsyncOrchestratorStore();
+    return createAxiomTelemetryStore(new SqliteAsyncOrchestratorStore());
   }
 
   const databaseUrl = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
@@ -22,5 +23,7 @@ export function getAsyncOrchestratorStore(): AsyncOrchestratorStore {
     );
   }
 
-  return PostgresOrchestratorStore.fromConnectionString(databaseUrl);
+  return createAxiomTelemetryStore(
+    PostgresOrchestratorStore.fromConnectionString(databaseUrl),
+  );
 }

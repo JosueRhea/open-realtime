@@ -13,11 +13,13 @@ import type { UsagePoint, UsageRange } from "@/lib/orchestrator/types";
 
 export function UsageChart({
   metric = "connections",
+  observabilityConfigured = true,
   range = "24h",
   title = "Connections · last 24h",
   usage,
 }: {
   metric?: "connections" | "messages";
+  observabilityConfigured?: boolean;
   range?: UsageRange;
   title?: string;
   usage: UsagePoint[];
@@ -39,7 +41,9 @@ export function UsageChart({
       <div className="mt-5 h-56">
         {chartData.length === 0 ? (
           <div className="flex h-full items-center justify-center rounded-md border bg-muted/40 text-sm text-muted-foreground">
-            Waiting for gateway usage reports
+            {observabilityConfigured
+              ? "Waiting for Axiom telemetry"
+              : "Connect Axiom to enable observability"}
           </div>
         ) : (
           <ChartContainer

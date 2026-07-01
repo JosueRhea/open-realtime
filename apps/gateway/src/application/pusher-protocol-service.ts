@@ -67,17 +67,18 @@ export class PusherProtocolService {
       this.registry.broadcast(event);
       void this.apps.findById(event.appId).then((app) => {
         if (app) this.usage?.message(app, event.channel, event.event);
-      });
-      this.observability.record({
-        name: "message.delivered",
-        fields: {
-          channel: event.channel,
-          app_id: event.appId,
-          event_name: event.event,
-          client_event: isClientEvent(event.event),
-          user_event: isServerToUserChannel(event.channel),
-          has_excluded_socket: Boolean(event.socketId),
-        },
+        this.observability.record({
+          name: "message.delivered",
+          fields: {
+            channel: event.channel,
+            app_id: event.appId,
+            tenant_id: app?.tenantId,
+            event_name: event.event,
+            client_event: isClientEvent(event.event),
+            user_event: isServerToUserChannel(event.channel),
+            has_excluded_socket: Boolean(event.socketId),
+          },
+        });
       });
     });
   }
@@ -120,6 +121,8 @@ export class PusherProtocolService {
     this.observability.record({
       name: "connection.closed",
       fields: {
+        app_id: app?.appId ?? appId,
+        tenant_id: app?.tenantId,
         socket_id: socketId,
         subscription_count: subscriptions.length,
       },

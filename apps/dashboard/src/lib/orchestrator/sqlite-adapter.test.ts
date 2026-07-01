@@ -30,6 +30,10 @@ describe("SqliteOrchestratorStore", () => {
       id: "tenant-1",
       mode: "self-hosted",
     });
+    expect(store.getOverview("tenant-1").observability).toEqual({
+      provider: "axiom",
+      configured: false,
+    });
   });
 
   it("creates and verifies tenant-scoped API tokens", () => {

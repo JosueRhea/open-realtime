@@ -86,6 +86,20 @@ export type ChannelSummary = {
   lastActivity: string;
 };
 
+export type WebhookDeliveryLog = {
+  id: string;
+  tenantId: string;
+  appId: string;
+  time: string;
+  event: "webhook.queued" | "webhook.delivered" | "webhook.delivery_failed";
+  url: string;
+  status: "queued" | "delivered" | "failed";
+  httpStatus: number | null;
+  eventCount: number;
+  webhookId: string;
+  durable: boolean | null;
+};
+
 export type ApiToken = {
   id: string;
   tenantId: string;
@@ -143,7 +157,12 @@ export type DashboardOverview = {
   usage: UsagePoint[];
   events: RealtimeEvent[];
   channels: ChannelSummary[];
+  webhookLogs: WebhookDeliveryLog[];
   apiTokens: ApiToken[];
+  observability: {
+    provider: "axiom";
+    configured: boolean;
+  };
   totals: {
     activeConnections: number;
     messagesToday: number;

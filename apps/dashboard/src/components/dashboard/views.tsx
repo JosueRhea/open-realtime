@@ -39,6 +39,7 @@ import type {
   RealtimeApp,
   RealtimeEvent,
   UsageRange,
+  WebhookDeliveryLog,
   WebhookEndpoint,
 } from "@/lib/orchestrator/types";
 import {
@@ -57,7 +58,10 @@ export function OverviewView({ overview }: { overview: DashboardOverview }) {
     <>
       <Metrics overview={overview} />
       <section className="grid gap-5 xl:grid-cols-[1.4fr_0.8fr]">
-        <UsageChart usage={overview.usage} />
+        <UsageChart
+          observabilityConfigured={overview.observability.configured}
+          usage={overview.usage}
+        />
         <HealthPanel overview={overview} />
       </section>
       <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
@@ -125,11 +129,13 @@ export function UsageView({
       <Metrics overview={overview} />
       <section className="grid gap-5 lg:grid-cols-[1fr_1fr]">
         <UsageChart
+          observabilityConfigured={overview.observability.configured}
           range={usageRange}
           usage={overview.usage}
           title={`Connections · ${usageRangeLabel(usageRange)}`}
         />
         <UsageChart
+          observabilityConfigured={overview.observability.configured}
           usage={overview.usage}
           metric="messages"
           range={usageRange}
@@ -141,6 +147,24 @@ export function UsageView({
         <TopChannels channels={overview.channels} />
       </section>
     </>
+  );
+}
+
+export function ObservabilityNotice() {
+  return (
+    <Panel className="border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-100">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">Connect Axiom for observability</h2>
+          <p className="mt-1 max-w-3xl text-sm leading-6 opacity-85">
+            Realtime usage, channels, and event activity require Axiom telemetry.
+            Configure AXIOM_TOKEN, AXIOM_DATASET, and AXIOM_API_URL for the
+            dashboard and gateway.
+          </p>
+        </div>
+        <Badge className="w-fit" variant="outline">Axiom required</Badge>
+      </div>
+    </Panel>
   );
 }
 
@@ -224,54 +248,60 @@ export function CredentialsView({ overview }: { overview: DashboardOverview }) {
 
 export function WebhooksView({ overview }: { overview: DashboardOverview }) {
   return (
-    <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
-      <WebhookPanel webhooks={overview.webhooks} />
-      <Panel>
-        <h2 className="text-sm font-semibold">Add endpoint</h2>
-        <form action={createWebhookAction} className="mt-4 space-y-3">
-          <input
-            name="appId"
-            type="hidden"
-            value={overview.currentApp?.appId ?? ""}
-          />
-          <Input
-            className="rounded-md"
-            disabled={!overview.currentApp}
-            name="url"
-            placeholder="https://api.example.com/pusher/webhooks"
-            required
-            type="url"
-          />
-          <div className="space-y-2 text-sm text-muted-foreground">
-            {[
-              "channel_occupied",
-              "channel_vacated",
-              "member_added",
-              "member_removed",
-            ].map((event) => (
-              <label className="flex items-center gap-2" key={event}>
-                <Checkbox
-                  defaultChecked
-                  name="events"
-                  value={event}
-                />
-                {event}
-              </label>
-            ))}
-          </div>
-          <Button
-            className="w-full rounded-md"
-            disabled={!overview.currentApp}
-          >
-            Add endpoint
-          </Button>
-        </form>
-        <p className="mt-3 text-xs leading-5 text-muted-foreground">
-          Endpoints receive signed POST requests for presence, channel, and
-          batched Pusher-compatible events.
-        </p>
-      </Panel>
-    </section>
+    <>
+      <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
+        <WebhookPanel webhooks={overview.webhooks} />
+        <Panel>
+          <h2 className="text-sm font-semibold">Add endpoint</h2>
+          <form action={createWebhookAction} className="mt-4 space-y-3">
+            <input
+              name="appId"
+              type="hidden"
+              value={overview.currentApp?.appId ?? ""}
+            />
+            <Input
+              className="rounded-md"
+              disabled={!overview.currentApp}
+              name="url"
+              placeholder="https://api.example.com/pusher/webhooks"
+              required
+              type="url"
+            />
+            <div className="space-y-2 text-sm text-muted-foreground">
+              {[
+                "channel_occupied",
+                "channel_vacated",
+                "member_added",
+                "member_removed",
+              ].map((event) => (
+                <label className="flex items-center gap-2" key={event}>
+                  <Checkbox
+                    defaultChecked
+                    name="events"
+                    value={event}
+                  />
+                  {event}
+                </label>
+              ))}
+            </div>
+            <Button
+              className="w-full rounded-md"
+              disabled={!overview.currentApp}
+            >
+              Add endpoint
+            </Button>
+          </form>
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            Endpoints receive signed POST requests for presence, channel, and
+            batched Pusher-compatible events.
+          </p>
+        </Panel>
+      </section>
+      <WebhookLogsPanel
+        logs={overview.webhookLogs}
+        observabilityConfigured={overview.observability.configured}
+      />
+    </>
   );
 }
 
@@ -555,6 +585,76 @@ function WebhookPanel({
   );
 }
 
+function WebhookLogsPanel({
+  logs,
+  observabilityConfigured,
+}: {
+  logs: WebhookDeliveryLog[];
+  observabilityConfigured: boolean;
+}) {
+  return (
+    <Panel>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-sm font-semibold">Webhook delivery logs</h2>
+        <Badge variant="secondary">Axiom</Badge>
+      </div>
+      <div className="mt-4 overflow-x-auto">
+        {logs.length === 0 ? (
+          <EmptyState
+            body={
+              observabilityConfigured
+                ? "Webhook delivery attempts will appear here after endpoints receive traffic."
+                : "Connect Axiom to view webhook delivery attempts, successes, and failures."
+            }
+            title={
+              observabilityConfigured
+                ? "No webhook delivery logs"
+                : "Webhook logs require Axiom"
+            }
+          />
+        ) : (
+          <Table className="min-w-[860px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Endpoint</TableHead>
+                <TableHead>HTTP</TableHead>
+                <TableHead>Events</TableHead>
+                <TableHead>Webhook ID</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {logs.map((log) => (
+                <TableRow key={`${log.id}:${log.time}:${log.event}`}>
+                  <TableCell className="text-muted-foreground">
+                    {formatLogTime(log.time)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={log.status === "failed" ? "destructive" : "outline"}
+                    >
+                      {log.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[280px] truncate">
+                    {log.url || "queued"}
+                  </TableCell>
+                  <TableCell>{log.httpStatus ?? "-"}</TableCell>
+                  <TableCell>{log.eventCount.toLocaleString()}</TableCell>
+                  <TableCell className="max-w-[220px] truncate text-muted-foreground">
+                    {log.webhookId || "-"}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </Panel>
+  );
+}
+
 function EventsPanel({ events }: { events: RealtimeEvent[] }) {
   return (
     <Panel>
@@ -653,6 +753,17 @@ function TopChannels({ channels }: { channels: ChannelSummary[] }) {
       </div>
     </Panel>
   );
+}
+
+function formatLogTime(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString(undefined, {
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    month: "short",
+  });
 }
 
 function CodeBlock({ label, value }: { label: string; value: string }) {

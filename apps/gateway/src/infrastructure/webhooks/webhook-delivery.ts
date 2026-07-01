@@ -22,6 +22,7 @@ export async function deliverWebhookBatch(
     events,
   });
   const payload = JSON.parse(body) as { webhook_id: string; events: PusherWebhookEvent[] };
+  const appId = appIdForEvents(payload.events);
 
   const signature = createHmac("sha256", options.credentials.secret)
     .update(body)
@@ -46,6 +47,7 @@ export async function deliverWebhookBatch(
           level: "warn",
           fields: {
             url,
+            app_id: appId,
             status: response.status,
             webhook_id: payload.webhook_id,
             event_count: payload.events.length,
@@ -58,6 +60,7 @@ export async function deliverWebhookBatch(
         name: "webhook.delivered",
         fields: {
           url,
+          app_id: appId,
           webhook_id: payload.webhook_id,
           event_count: payload.events.length,
         },
@@ -72,4 +75,11 @@ export async function deliverWebhookBatch(
       "One or more webhook deliveries failed",
     );
   }
+}
+
+function appIdForEvents(events: PusherWebhookEvent[]): string | undefined {
+  const appIds = new Set(events.map((event) => event.app_id).filter(Boolean));
+  if (appIds.size === 0) return undefined;
+  if (appIds.size === 1) return [...appIds][0];
+  return "multiple";
 }

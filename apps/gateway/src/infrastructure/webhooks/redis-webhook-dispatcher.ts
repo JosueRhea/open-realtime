@@ -46,6 +46,7 @@ export class RedisWebhookDispatcher implements WebhookDispatcher {
     this.options.observability?.record({
       name: "webhook.queued",
       fields: {
+        app_id: appIdForEvents(filtered),
         event_count: filtered.length,
         durable: true,
       },
@@ -157,4 +158,11 @@ export interface RedisWebhookClient {
   ltrim(key: string, start: number, stop: number): Promise<unknown> | unknown;
   eval(script: string, keys: number, key: string, value: string): Promise<unknown> | unknown;
   quit(): Promise<unknown> | unknown;
+}
+
+function appIdForEvents(events: PusherWebhookEvent[]): string | undefined {
+  const appIds = new Set(events.map((event) => event.app_id).filter(Boolean));
+  if (appIds.size === 0) return undefined;
+  if (appIds.size === 1) return [...appIds][0];
+  return "multiple";
 }

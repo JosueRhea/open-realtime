@@ -33,6 +33,7 @@ export class HttpWebhookDispatcher implements WebhookDispatcher {
     this.options.observability?.record({
       name: "webhook.queued",
       fields: {
+        app_id: appIdForEvents(filtered),
         event_count: filtered.length,
         durable: false,
       },
@@ -113,4 +114,11 @@ export class HttpWebhookDispatcher implements WebhookDispatcher {
     const max = Math.max(base, this.options.retryMaxDelayMs ?? 30000);
     return Math.min(max, base);
   }
+}
+
+function appIdForEvents(events: PusherWebhookEvent[]): string | undefined {
+  const appIds = new Set(events.map((event) => event.app_id).filter(Boolean));
+  if (appIds.size === 0) return undefined;
+  if (appIds.size === 1) return [...appIds][0];
+  return "multiple";
 }
