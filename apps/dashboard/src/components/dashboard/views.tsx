@@ -216,7 +216,10 @@ function UsageRangeSelector({
 export function AppsView({ overview }: { overview: DashboardOverview }) {
   return (
     <section className="grid gap-5 xl:grid-cols-[1fr_360px]">
-      <AppsTable apps={overview.apps} />
+      <AppsTable
+        apps={overview.apps}
+        observabilityConfigured={overview.observability.configured}
+      />
       <CreateAppPanel />
     </section>
   );
@@ -409,11 +412,12 @@ function EmptyPlatform({ overview }: { overview: DashboardOverview }) {
 }
 
 function Metrics({ overview }: { overview: DashboardOverview }) {
+  const source = overview.observability.configured ? "Axiom" : "Axiom required";
   const metrics = [
-    ["Active connections", overview.totals.activeConnections.toLocaleString(), "reported by gateway"],
-    ["Messages today", overview.totals.messagesToday.toLocaleString(), "selected app"],
+    ["Active connections", overview.totals.activeConnections.toLocaleString(), source],
+    ["Messages today", overview.totals.messagesToday.toLocaleString(), source],
     ["Peak connections", overview.totals.peakConnections.toLocaleString(), "current window"],
-    ["Webhook failures", overview.totals.webhookFailures.toLocaleString(), "needs attention"],
+    ["Webhook failures", overview.totals.webhookFailures.toLocaleString(), "delivery logs"],
   ];
 
   return (
@@ -457,7 +461,13 @@ function HealthPanel({ overview }: { overview: DashboardOverview }) {
   );
 }
 
-function AppsTable({ apps }: { apps: RealtimeApp[] }) {
+function AppsTable({
+  apps,
+  observabilityConfigured,
+}: {
+  apps: RealtimeApp[];
+  observabilityConfigured: boolean;
+}) {
   return (
     <Panel>
       <h2 className="text-sm font-semibold">{apps.length} apps in this instance</h2>
@@ -480,8 +490,16 @@ function AppsTable({ apps }: { apps: RealtimeApp[] }) {
                 <TableCell className="font-medium">{app.name}</TableCell>
                 <TableCell className="text-muted-foreground">{app.appId}</TableCell>
                 <TableCell>{app.cluster}</TableCell>
-                <TableCell>{app.activeConnections.toLocaleString()}</TableCell>
-                <TableCell>{app.messagesToday.toLocaleString()}</TableCell>
+                <TableCell>
+                  {observabilityConfigured
+                    ? app.activeConnections.toLocaleString()
+                    : "-"}
+                </TableCell>
+                <TableCell>
+                  {observabilityConfigured
+                    ? app.messagesToday.toLocaleString()
+                    : "-"}
+                </TableCell>
                 <TableCell>
                   <Badge variant="outline">{app.status}</Badge>
                 </TableCell>

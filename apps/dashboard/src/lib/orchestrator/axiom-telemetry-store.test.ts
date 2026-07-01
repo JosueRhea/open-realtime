@@ -68,6 +68,10 @@ describe("AxiomTelemetryClient", () => {
           return jsonTable(["opened", "closed"], [[5], [2]]);
         }
 
+        if (body.apl.includes("webhook.delivery_failed")) {
+          return jsonTable(["failures"], [[1]]);
+        }
+
         return jsonTable(["messages"], [[7]]);
       },
     });
@@ -110,6 +114,7 @@ describe("AxiomTelemetryClient", () => {
     });
     expect(overview.activeConnections).toBe(3);
     expect(overview.messagesToday).toBe(7);
+    expect(overview.webhookFailures).toBe(1);
     expect(requests[0]).toMatchObject({
       url: "https://axiom.example/v1/datasets/_apl?format=tabular",
       body: { startTime: "now-24h" },
@@ -154,6 +159,9 @@ describe("AxiomTelemetryClient", () => {
           }
           if (body.apl.includes("opened=countif")) {
             return jsonTable(["opened", "closed"], [[3], [1]]);
+          }
+          if (body.apl.includes("webhook.delivery_failed")) {
+            return jsonTable(["failures"], [[0]]);
           }
           return jsonTable(["messages"], [[9]]);
         },

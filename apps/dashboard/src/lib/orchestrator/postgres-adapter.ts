@@ -174,25 +174,19 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
   async getOverview(
     tenantId: string,
     appId?: string,
-    options: DashboardOverviewOptions = {},
+    _options: DashboardOverviewOptions = {},
   ): Promise<DashboardOverview> {
+    void _options;
     const tenant = (await this.getTenant(tenantId)) ?? defaultTenant(tenantId);
     const apps = await this.listApps(tenant.id);
     const currentApp = apps.find((app) => app.appId === appId) ?? apps[0] ?? null;
-    const [webhooks, usage, events, channels, apiTokens, gatewayApps] = currentApp
+    const [webhooks, apiTokens, gatewayApps] = currentApp
       ? await Promise.all([
           this.listWebhooks(tenant.id, currentApp.appId),
-          this.listUsage(tenant.id, currentApp.appId, usageBucketLimit(options.usageRange)),
-          this.listEvents(tenant.id, currentApp.appId),
-          this.listChannels(tenant.id, currentApp.appId),
           this.listApiTokens(tenant.id),
           this.listGatewayApps(tenant.id),
         ])
-      : [[], [], [], [], await this.listApiTokens(tenant.id), await this.listGatewayApps(tenant.id)];
-    const peakConnections = Math.max(
-      currentApp?.activeConnections ?? 0,
-      ...usage.map((point) => point.connections),
-    );
+      : [[], await this.listApiTokens(tenant.id), await this.listGatewayApps(tenant.id)];
 
     return {
       tenant,
@@ -200,9 +194,9 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
       apps,
       gatewayApps,
       webhooks,
-      usage,
-      events,
-      channels,
+      usage: [],
+      events: [],
+      channels: [],
       webhookLogs: [],
       apiTokens,
       observability: {
@@ -210,10 +204,10 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
         configured: false,
       },
       totals: {
-        activeConnections: currentApp?.activeConnections ?? 0,
-        messagesToday: currentApp?.messagesToday ?? 0,
-        peakConnections,
-        webhookFailures: webhooks.reduce((sum, webhook) => sum + webhook.failureCount, 0),
+        activeConnections: 0,
+        messagesToday: 0,
+        peakConnections: 0,
+        webhookFailures: 0,
       },
     };
   }
@@ -484,20 +478,6 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
     if (rows.length === 0) {
       throw new Error(`App ${appId} was not found for tenant ${tenantId}`);
     }
-  }
-}
-
-function usageBucketLimit(range: DashboardOverviewOptions["usageRange"]) {
-  switch (range) {
-    case "1h":
-      return 1;
-    case "7d":
-      return 24 * 7;
-    case "30d":
-      return 24 * 30;
-    case "24h":
-    default:
-      return 24;
   }
 }
 

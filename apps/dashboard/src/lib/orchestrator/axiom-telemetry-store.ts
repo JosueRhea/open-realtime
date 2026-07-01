@@ -75,6 +75,7 @@ export class AxiomTelemetryOrchestratorStore implements AsyncOrchestratorStore {
           activeConnections: telemetry.activeConnections,
           messagesToday: telemetry.messagesToday,
           peakConnections,
+          webhookFailures: telemetry.webhookFailures,
         },
       };
     } catch (error) {
@@ -112,8 +113,17 @@ export class AxiomTelemetryClient {
     webhookLogs: WebhookDeliveryLog[];
     activeConnections: number;
     messagesToday: number;
+    webhookFailures: number;
   }> {
-    const [usage, events, channels, webhookLogs, activeConnections, messagesToday] =
+    const [
+      usage,
+      events,
+      channels,
+      webhookLogs,
+      activeConnections,
+      messagesToday,
+      webhookFailures,
+    ] =
       await Promise.all([
         this.usage(input),
         this.events(input),
@@ -121,6 +131,7 @@ export class AxiomTelemetryClient {
         this.webhookLogs(input),
         this.activeConnections(input),
         this.messagesToday(input),
+        this.webhookFailures(input),
       ]);
 
     return {
@@ -130,6 +141,7 @@ export class AxiomTelemetryClient {
       webhookLogs,
       activeConnections,
       messagesToday,
+      webhookFailures,
     };
   }
 
@@ -319,6 +331,22 @@ export class AxiomTelemetryClient {
       "now-24h",
     );
     return numberValue(rows[0]?.messages);
+  }
+
+  private async webhookFailures(input: {
+    tenantId: string;
+    appId: string;
+  }): Promise<number> {
+    const rows = await this.queryRows(
+      [
+        this.datasetExpression,
+        `where ${this.appFilter(input)}`,
+        "where event == 'webhook.delivery_failed'",
+        "summarize failures=count()",
+      ].join(" | "),
+      "now-30d",
+    );
+    return numberValue(rows[0]?.failures);
   }
 
   private async queryRows(apl: string, startTime: string): Promise<AxiomRow[]> {

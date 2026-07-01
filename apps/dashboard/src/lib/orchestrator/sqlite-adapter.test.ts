@@ -100,17 +100,15 @@ describe("SqliteOrchestratorStore", () => {
     const overview = store.getOverview("tenant-1", secondApp.appId);
 
     expect(overview.currentApp?.appId).toBe(secondApp.appId);
-    expect(overview.totals.messagesToday).toBe(11);
-    expect(overview.usage).toEqual([
-      expect.objectContaining({ appId: secondApp.appId, connections: 7 }),
-    ]);
+    expect(overview.totals.messagesToday).toBe(0);
+    expect(overview.usage).toEqual([]);
     expect(overview.gatewayApps.map((app) => app.appId).sort()).toEqual(
       [firstApp.appId, secondApp.appId].sort(),
     );
     expect(overview.gatewayApps.every((app) => app.secret.startsWith("sec_"))).toBe(true);
   });
 
-  it("writes usage, events, channels, and webhooks only for the matching tenant app", () => {
+  it("writes usage, events, channels, and webhooks without exposing telemetry in overview", () => {
     const store = createStore();
     const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
 
@@ -158,17 +156,17 @@ describe("SqliteOrchestratorStore", () => {
 
     const overview = store.getOverview("tenant-1");
     expect(overview.totals).toMatchObject({
-      activeConnections: 12,
-      messagesToday: 24,
+      activeConnections: 0,
+      messagesToday: 0,
       webhookFailures: 0,
     });
-    expect(overview.usage).toHaveLength(1);
-    expect(overview.events).toHaveLength(1);
-    expect(overview.channels).toHaveLength(1);
+    expect(overview.usage).toHaveLength(0);
+    expect(overview.events).toHaveLength(0);
+    expect(overview.channels).toHaveLength(0);
     expect(overview.webhooks).toHaveLength(1);
   });
 
-  it("returns usage buckets for the selected range in chronological order", () => {
+  it("hides stored usage buckets for every selected range until Axiom is connected", () => {
     const store = createStore();
     const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
 
@@ -184,16 +182,14 @@ describe("SqliteOrchestratorStore", () => {
 
     const overview = store.getOverview("tenant-1", app.appId);
 
-    expect(overview.usage).toHaveLength(24);
-    expect(overview.usage[0]?.hour).toBe("2026-06-07T00:00:00.000Z");
-    expect(overview.usage.at(-1)?.hour).toBe("2026-06-30T00:00:00.000Z");
+    expect(overview.usage).toHaveLength(0);
 
     expect(store.getOverview("tenant-1", app.appId, { usageRange: "1h" }).usage)
-      .toHaveLength(1);
+      .toHaveLength(0);
     expect(store.getOverview("tenant-1", app.appId, { usageRange: "7d" }).usage)
-      .toHaveLength(30);
+      .toHaveLength(0);
     expect(store.getOverview("tenant-1", app.appId, { usageRange: "30d" }).usage)
-      .toHaveLength(30);
+      .toHaveLength(0);
   });
 
   it("aggregates connection deltas instead of trusting one gateway instance", () => {
@@ -227,9 +223,7 @@ describe("SqliteOrchestratorStore", () => {
 
     const overview = store.getOverview("tenant-1", app.appId);
 
-    expect(overview.totals.activeConnections).toBe(1);
-    expect(overview.usage).toEqual([
-      expect.objectContaining({ connections: 1 }),
-    ]);
+    expect(overview.totals.activeConnections).toBe(0);
+    expect(overview.usage).toEqual([]);
   });
 });

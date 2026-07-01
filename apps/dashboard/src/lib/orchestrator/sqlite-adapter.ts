@@ -166,26 +166,16 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
   getOverview(
     tenantId: string,
     appId?: string,
-    options: DashboardOverviewOptions = {},
+    _options: DashboardOverviewOptions = {},
   ): DashboardOverview {
+    void _options;
     const tenant = this.getTenant(tenantId) ?? defaultTenant(tenantId);
     const apps = this.listApps(tenant.id);
     const currentApp = apps.find((app) => app.appId === appId) ?? apps[0] ?? null;
     const gatewayApps = this.listGatewayApps(tenant.id);
 
     const webhooks = currentApp ? this.listWebhooks(tenant.id, currentApp.appId) : [];
-    const usage = currentApp
-      ? this.listUsage(tenant.id, currentApp.appId, usageBucketLimit(options.usageRange))
-      : [];
-    const events = currentApp ? this.listEvents(tenant.id, currentApp.appId) : [];
-    const channels = currentApp
-      ? this.listChannels(tenant.id, currentApp.appId)
-      : [];
     const apiTokens = this.listApiTokens(tenant.id);
-    const peakConnections = Math.max(
-      currentApp?.activeConnections ?? 0,
-      ...usage.map((point) => point.connections),
-    );
 
     return {
       tenant,
@@ -193,9 +183,9 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
       apps,
       gatewayApps,
       webhooks,
-      usage,
-      events,
-      channels,
+      usage: [],
+      events: [],
+      channels: [],
       webhookLogs: [],
       apiTokens,
       observability: {
@@ -203,13 +193,10 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
         configured: false,
       },
       totals: {
-        activeConnections: currentApp?.activeConnections ?? 0,
-        messagesToday: currentApp?.messagesToday ?? 0,
-        peakConnections,
-        webhookFailures: webhooks.reduce(
-          (sum, webhook) => sum + webhook.failureCount,
-          0,
-        ),
+        activeConnections: 0,
+        messagesToday: 0,
+        peakConnections: 0,
+        webhookFailures: 0,
       },
     };
   }
@@ -826,20 +813,6 @@ function mapTenantMembership(row: TenantMembershipRow): TenantMembership {
     role: row.role,
     createdAt: row.created_at,
   };
-}
-
-function usageBucketLimit(range: DashboardOverviewOptions["usageRange"]) {
-  switch (range) {
-    case "1h":
-      return 1;
-    case "7d":
-      return 24 * 7;
-    case "30d":
-      return 24 * 30;
-    case "24h":
-    default:
-      return 24;
-  }
 }
 
 function mapApp(row: AppRow): RealtimeApp {
