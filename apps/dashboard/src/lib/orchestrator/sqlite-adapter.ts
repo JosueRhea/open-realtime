@@ -604,7 +604,12 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
   private listUsage(tenantId: string, appId: string): UsagePoint[] {
     return this.db
       .prepare(
-        `select * from usage_hourly where tenant_id = ? and app_id = ? order by hour`,
+        `select * from (
+           select * from usage_hourly
+           where tenant_id = ? and app_id = ?
+           order by hour desc
+           limit 24
+         ) order by hour`,
       )
       .all(tenantId, appId)
       .map((row) => {

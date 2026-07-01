@@ -52,6 +52,9 @@ describe("UsageReporter", () => {
       messages: 1,
       webhookFailures: 0,
     });
+    expect(reporter.usage.at(-1)?.hour).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/,
+    );
     expect(reporter.channels.at(-1)).toMatchObject({
       tenantId: "tenant-1",
       appId: "app",

@@ -420,7 +420,13 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
 
   private async listUsage(tenantId: string, appId: string): Promise<UsagePoint[]> {
     const rows = await this.sql<UsageRow[]>`
-      select * from usage_hourly where tenant_id = ${tenantId} and app_id = ${appId} order by hour
+      select * from (
+        select * from usage_hourly
+        where tenant_id = ${tenantId} and app_id = ${appId}
+        order by hour desc
+        limit 24
+      ) as recent_usage
+      order by hour
     `;
     return rows.map(mapUsage);
   }

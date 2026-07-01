@@ -155,4 +155,25 @@ describe("SqliteOrchestratorStore", () => {
     expect(overview.channels).toHaveLength(1);
     expect(overview.webhooks).toHaveLength(1);
   });
+
+  it("returns the latest 24 usage buckets in chronological order", () => {
+    const store = createStore();
+    const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
+
+    for (let index = 0; index < 30; index += 1) {
+      store.reportUsage({
+        tenantId: "tenant-1",
+        appId: app.appId,
+        hour: `2026-06-${String(index + 1).padStart(2, "0")}T00:00:00.000Z`,
+        connections: index,
+        messages: index * 2,
+      });
+    }
+
+    const overview = store.getOverview("tenant-1", app.appId);
+
+    expect(overview.usage).toHaveLength(24);
+    expect(overview.usage[0]?.hour).toBe("2026-06-07T00:00:00.000Z");
+    expect(overview.usage.at(-1)?.hour).toBe("2026-06-30T00:00:00.000Z");
+  });
 });

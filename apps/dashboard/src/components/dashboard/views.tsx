@@ -402,13 +402,22 @@ function UsageChart({
                 className="w-full rounded-t bg-[#4f46e5]"
                 style={{ height: `${Math.max(8, (point[metric] / max) * 190)}px` }}
               />
-              <span className="text-[11px] text-[#8a9099]">{point.hour}</span>
+              <span className="text-[11px] text-[#8a9099]">
+                {formatUsageHour(point.hour)}
+              </span>
             </div>
           ))
         )}
       </div>
     </Panel>
   );
+}
+
+function formatUsageHour(hour: string) {
+  const date = new Date(hour);
+  if (Number.isNaN(date.getTime())) return hour;
+
+  return `${String(date.getUTCHours()).padStart(2, "0")}:00`;
 }
 
 function HealthPanel({ overview }: { overview: DashboardOverview }) {

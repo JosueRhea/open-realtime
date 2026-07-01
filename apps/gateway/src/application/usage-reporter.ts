@@ -223,5 +223,6 @@ function channelType(channel: string): ChannelSnapshot["type"] {
 
 function currentHour(): string {
   const now = new Date();
-  return `${String(now.getUTCHours()).padStart(2, "0")}:00`;
+  now.setUTCMinutes(0, 0, 0);
+  return now.toISOString();
 }
