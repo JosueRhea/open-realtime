@@ -15,12 +15,12 @@ import {
 export function AuthScreen() {
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-8 px-4 py-10 lg:grid-cols-[1fr_420px]">
+      <div className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:py-10">
         <section>
           <div className="flex size-11 items-center justify-center rounded-md bg-foreground text-background">
             <RadioTower size={20} />
           </div>
-          <h1 className="mt-6 max-w-xl text-4xl font-semibold tracking-tight">
+          <h1 className="mt-6 max-w-xl text-3xl font-semibold tracking-tight sm:text-4xl">
             Open Realtime
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -37,7 +37,7 @@ export function AuthScreen() {
           </p>
         </section>
 
-        <Card className="rounded-md">
+        <Card className="w-full rounded-md">
           <CardContent>
             <h2 className="text-sm font-semibold">Owner access</h2>
             <form action={signUpAction} className="mt-4 space-y-3">

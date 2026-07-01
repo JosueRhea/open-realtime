@@ -74,7 +74,7 @@ export function ChannelsView({ overview }: { overview: DashboardOverview }) {
       <Panel>
         <h2 className="text-sm font-semibold">Channels</h2>
         <div className="mt-4">
-          <Table>
+          <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Channel</TableHead>
@@ -123,7 +123,7 @@ export function UsageView({
         value={usageRange}
       />
       <Metrics overview={overview} />
-      <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
+      <section className="grid gap-5 lg:grid-cols-[1fr_1fr]">
         <UsageChart
           range={usageRange}
           usage={overview.usage}
@@ -159,7 +159,7 @@ function UsageRangeSelector({
   ];
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
       <div>
         <h2 className="text-sm font-semibold">Usage window</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -167,7 +167,7 @@ function UsageRangeSelector({
         </p>
       </div>
       <ToggleGroup
-        className="rounded-md border bg-card p-1"
+        className="w-full justify-start overflow-x-auto rounded-md border bg-card p-1 sm:w-auto"
         size="sm"
         type="single"
         value={value}
@@ -285,7 +285,7 @@ export function LimitsView({ overview }: { overview: DashboardOverview }) {
   ];
 
   return (
-    <section className="grid gap-5 xl:grid-cols-[360px_1fr]">
+    <section className="grid gap-5 xl:grid-cols-[minmax(0,360px)_1fr]">
       <Panel>
         <p className="text-sm text-muted-foreground">Current plan</p>
         <h2 className="mt-1 text-2xl font-semibold">
@@ -311,7 +311,7 @@ export function TeamView({ overview }: { overview: DashboardOverview }) {
   return (
     <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
       <Panel>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-semibold">Members</h2>
           <Button className="rounded-md" size="xs">
             Invite member
@@ -432,7 +432,7 @@ function AppsTable({ apps }: { apps: RealtimeApp[] }) {
     <Panel>
       <h2 className="text-sm font-semibold">{apps.length} apps in this instance</h2>
       <div className="mt-4">
-        <Table>
+        <Table className="min-w-[760px]">
           <TableHeader>
             <TableRow>
               <TableHead>App</TableHead>
@@ -525,7 +525,7 @@ function WebhookPanel({
 }) {
   return (
     <Panel>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h2 className="text-sm font-semibold">Webhooks</h2>
         <Button className="rounded-md" size="xs" variant="outline">
           Add endpoint
@@ -540,7 +540,7 @@ function WebhookPanel({
         ) : (
           webhooks.slice(0, compact ? 2 : undefined).map((webhook) => (
             <div className="rounded-md border p-3" key={webhook.id}>
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <p className="truncate text-sm font-medium">{webhook.url}</p>
                 <Badge variant="outline">{webhook.status}</Badge>
               </div>
@@ -570,7 +570,7 @@ function EventsPanel({ events }: { events: RealtimeEvent[] }) {
           />
         ) : (
           events.map((event) => (
-            <div className="grid min-w-0 grid-cols-[52px_minmax(0,1fr)_auto] gap-3 text-sm" key={event.id}>
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] gap-2 text-sm sm:grid-cols-[52px_minmax(0,1fr)_auto] sm:gap-3" key={event.id}>
               <span className="text-muted-foreground">{event.time}</span>
               <span className="min-w-0 break-all">{event.channel}</span>
               <span className="text-muted-foreground">{event.status}</span>

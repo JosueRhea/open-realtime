@@ -38,7 +38,7 @@ export function EmptyState({
 
 export function CredentialRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid min-w-0 grid-cols-[80px_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm sm:grid-cols-[88px_minmax(0,1fr)_auto]">
+    <div className="grid min-w-0 grid-cols-[minmax(58px,80px)_minmax(0,1fr)_auto] items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm sm:grid-cols-[88px_minmax(0,1fr)_auto]">
       <span className="text-xs text-muted-foreground">{label}</span>
       <code className="min-w-0 break-all text-xs leading-5">{value}</code>
       <Clipboard size={14} className="shrink-0 text-muted-foreground" />
@@ -56,12 +56,12 @@ export function SetupRow({
   value: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center justify-between gap-4 rounded-md border bg-muted/40 px-3 py-2 text-sm">
+    <div className="flex min-w-0 flex-col gap-1 rounded-md border bg-muted/40 px-3 py-2 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <span className="inline-flex min-w-0 items-center gap-2 text-muted-foreground">
         <Icon size={15} />
         {label}
       </span>
-      <span className="min-w-0 break-words text-right font-medium">{value}</span>
+      <span className="min-w-0 break-words font-medium sm:text-right">{value}</span>
     </div>
   );
 }

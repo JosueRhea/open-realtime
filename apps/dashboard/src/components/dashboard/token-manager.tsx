@@ -48,7 +48,7 @@ export function TokenManager({ tokens }: { tokens: ApiToken[] }) {
 
   return (
     <div>
-      <form className="mt-4 flex gap-2" onSubmit={createToken}>
+      <form className="mt-4 flex flex-col gap-2 sm:flex-row" onSubmit={createToken}>
         <Input
           className="min-w-0 flex-1"
           name="name"
@@ -57,7 +57,7 @@ export function TokenManager({ tokens }: { tokens: ApiToken[] }) {
           required
           value={name}
         />
-        <Button className="rounded-md" disabled={isCreating} size="sm">
+        <Button className="rounded-md sm:w-auto" disabled={isCreating} size="sm">
           {isCreating ? "Creating" : "Create token"}
         </Button>
       </form>
@@ -87,9 +87,9 @@ export function TokenManager({ tokens }: { tokens: ApiToken[] }) {
               className="rounded-md border bg-muted/40 p-3 text-sm"
               key={token.id}
             >
-              <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <p className="font-medium">{token.name}</p>
-                <span className="text-xs text-muted-foreground">
+                <span className="break-words text-xs text-muted-foreground">
                   {token.scopes.join(", ")}
                 </span>
               </div>
