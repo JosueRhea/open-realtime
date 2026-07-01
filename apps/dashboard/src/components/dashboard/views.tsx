@@ -415,7 +415,7 @@ function Metrics({ overview }: { overview: DashboardOverview }) {
   const metrics = [
     ["Connections", overview.totals.activeConnections.toLocaleString()],
     ["Messages", overview.totals.messagesToday.toLocaleString()],
-    ["Peak connections", overview.totals.peakConnections.toLocaleString()],
+    ["Max connection opens", overview.totals.peakConnections.toLocaleString()],
     ["Webhook failures", overview.totals.webhookFailures.toLocaleString()],
   ];
 
