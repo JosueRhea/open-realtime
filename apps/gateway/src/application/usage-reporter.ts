@@ -42,29 +42,47 @@ export class UsageReporter {
 
   connectionOpened(app: TenantApp): void {
     this.counters(app).activeConnections += 1;
-    void this.flushApp(app);
+    void Promise.all([
+      this.flushApp(app),
+      this.reportLifecycleEvent(app, "connection.opened", "connection", "gateway"),
+    ]).catch(() => {});
   }
 
-  connectionClosed(app: TenantApp | undefined, subscriptions: Subscription[]): void {
+  connectionClosed(app: TenantApp | undefined, subscriptions: Subscription[], socketId?: string): void {
     if (!app) return;
     const counters = this.counters(app);
     counters.activeConnections = Math.max(0, counters.activeConnections - 1);
     for (const subscription of subscriptions) {
       this.unsubscribed(app, subscription.channel);
     }
-    void this.flushApp(app);
+    void Promise.all([
+      this.flushApp(app),
+      this.reportLifecycleEvent(
+        app,
+        "connection.closed",
+        "connection",
+        socketId ?? "gateway",
+        `subscriptions:${subscriptions.length}`,
+      ),
+    ]).catch(() => {});
   }
 
   subscribed(app: TenantApp, channel: string): void {
     this.channel(app, channel).subscriptions += 1;
-    void this.flushChannel(app, channel);
+    void Promise.all([
+      this.flushChannel(app, channel),
+      this.reportLifecycleEvent(app, "channel.subscribed", channel, "gateway"),
+    ]).catch(() => {});
   }
 
   unsubscribed(app: TenantApp, channel: string): void {
     const channelCounters = this.channel(app, channel);
     channelCounters.subscriptions = Math.max(0, channelCounters.subscriptions - 1);
     channelCounters.lastActivity = new Date().toISOString();
-    void this.flushChannel(app, channel);
+    void Promise.all([
+      this.flushChannel(app, channel),
+      this.reportLifecycleEvent(app, "channel.unsubscribed", channel, "gateway"),
+    ]).catch(() => {});
   }
 
   message(app: TenantApp, channel: string, event: string, user = "system"): void {
@@ -149,6 +167,24 @@ export class UsageReporter {
     const counters = this.counters(app);
     const channelCounters = this.channel(app, channel);
     await this.reporter.reportChannel(toChannelSnapshot(counters, channelCounters)).catch(() => {});
+  }
+
+  private async reportLifecycleEvent(
+    app: TenantApp,
+    type: string,
+    channel: string,
+    user: string,
+    meta = "gateway",
+  ): Promise<void> {
+    await this.reporter.reportEvent({
+      tenantId: tenantIdFor(app),
+      appId: app.appId,
+      type,
+      channel,
+      user,
+      status: "sent",
+      meta,
+    });
   }
 }
 

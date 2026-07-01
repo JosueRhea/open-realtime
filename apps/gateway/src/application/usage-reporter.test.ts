@@ -66,10 +66,23 @@ describe("UsageReporter", () => {
       channel: "presence-room",
       user: "user-1",
     });
+    expect(reporter.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "connection.opened",
+          channel: "connection",
+          user: "gateway",
+        }),
+        expect.objectContaining({
+          type: "channel.subscribed",
+          channel: "presence-room",
+        }),
+      ]),
+    );
 
     usage.connectionClosed(app, [
       { appId: "app", channel: "presence-room", socketId: "1.1" },
-    ]);
+    ], "1.1");
     await usage.flush();
 
     expect(reporter.usage.at(-1)).toMatchObject({
@@ -80,5 +93,19 @@ describe("UsageReporter", () => {
       name: "presence-room",
       subscriptions: 0,
     });
+    expect(reporter.events).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "channel.unsubscribed",
+          channel: "presence-room",
+        }),
+        expect.objectContaining({
+          type: "connection.closed",
+          channel: "connection",
+          user: "1.1",
+          meta: "subscriptions:1",
+        }),
+      ]),
+    );
   });
 });

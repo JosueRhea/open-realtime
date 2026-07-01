@@ -116,7 +116,7 @@ export class PusherProtocolService {
     const appId = this.registry.appId(socketId);
     const app = appId ? await this.apps.findById(appId) : undefined;
     const subscriptions = this.registry.remove(socketId);
-    this.usage?.connectionClosed(app, subscriptions);
+    this.usage?.connectionClosed(app, subscriptions, socketId);
     this.observability.record({
       name: "connection.closed",
       fields: {

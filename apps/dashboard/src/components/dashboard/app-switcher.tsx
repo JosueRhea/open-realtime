@@ -24,7 +24,7 @@ export function AppSwitcher({
 
   if (apps.length === 0) {
     return (
-      <div className="rounded-md border border-[#e7e9ec] bg-[#fafbfc] p-3">
+      <div className="rounded-md border border-[#dde5ef] bg-[#f7fafc] p-3">
         <p className="truncate text-sm font-medium">No app yet</p>
         <p className="mt-2 text-xs text-[#6b7280]">Create an app to issue keys</p>
       </div>
@@ -32,11 +32,11 @@ export function AppSwitcher({
   }
 
   return (
-    <div className="rounded-md border border-[#e7e9ec] bg-[#fafbfc] p-3">
+    <div className="rounded-md border border-[#dde5ef] bg-[#f7fafc] p-3">
       <div className="relative">
         <select
           aria-label="Select app"
-          className="h-10 w-full appearance-none rounded-md border border-[#d4d7db] bg-white px-3 pr-8 text-sm font-medium outline-none focus:border-[#4f46e5]"
+          className="h-10 w-full appearance-none truncate rounded-md border border-[#cfd8e3] bg-white px-3 pr-8 text-sm font-medium outline-none focus:border-[#2f80ed]"
           onChange={(event) => selectApp(event.target.value)}
           value={currentAppId ?? apps[0]?.appId ?? ""}
         >
@@ -52,9 +52,11 @@ export function AppSwitcher({
           size={16}
         />
       </div>
-      <div className="mt-2 flex items-center gap-2 text-xs text-[#6b7280]">
-        <span className="size-2 rounded-full bg-[#16a34a]" />
-        {apps.find((app) => app.appId === currentAppId)?.cluster ?? apps[0]?.cluster}
+      <div className="mt-2 flex min-w-0 items-center gap-2 text-xs text-[#6b7280]">
+        <span className="size-2 shrink-0 rounded-full bg-[#19a974]" />
+        <span className="truncate">
+          {apps.find((app) => app.appId === currentAppId)?.cluster ?? apps[0]?.cluster}
+        </span>
       </div>
     </div>
   );

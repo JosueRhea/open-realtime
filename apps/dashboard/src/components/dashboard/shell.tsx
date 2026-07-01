@@ -99,16 +99,16 @@ export function DashboardShell({
     : "";
 
   return (
-    <main className="min-h-screen bg-[#f5f6f7] text-[#1a1d21]">
+    <main className="min-h-screen bg-[#f4f7fb] text-[#1a1d21]">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[240px_1fr]">
-        <aside className="border-r border-[#e7e9ec] bg-white/80 px-3 py-4">
-          <Link className="mb-5 flex items-center gap-2 px-2" href="/">
-            <span className="flex size-8 items-center justify-center rounded-md bg-[#1a1d21] text-white">
+        <aside className="border-r border-[#dde5ef] bg-white px-3 py-4 shadow-[1px_0_0_rgba(15,23,42,0.02)]">
+          <Link className="mb-5 flex min-w-0 items-center gap-2 rounded-md px-2 py-1 hover:bg-[#f4f7fb]" href="/">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#14213d] text-white">
               <RadioTower size={16} />
             </span>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold">Open Realtime</p>
-              <p className="text-xs text-[#6b7280]">
+              <p className="truncate text-xs text-[#6b7280]">
                 {tenantModeLabel(overview.tenant.mode)} console
               </p>
             </div>
@@ -135,16 +135,16 @@ export function DashboardShell({
                     return (
                       <Link
                         className={[
-                          "flex items-center gap-2 rounded-md px-2 py-2 text-sm",
+                          "flex min-w-0 items-center gap-2 rounded-md px-2 py-2 text-sm",
                           isActive
-                            ? "bg-[#eef1fe] text-[#3730a3]"
-                            : "text-[#4b5563] hover:bg-[#f4f5f6]",
+                            ? "bg-[#eaf2ff] text-[#1454b8] shadow-[inset_3px_0_0_#2f80ed]"
+                            : "text-[#4b5563] hover:bg-[#f4f7fb]",
                         ].join(" ")}
                         href={`${item.href}${selectedAppQuery}`}
                         key={item.route}
                       >
-                        <Icon size={15} />
-                        {item.label}
+                        <Icon className="shrink-0" size={15} />
+                        <span className="truncate">{item.label}</span>
                       </Link>
                     );
                   })}
@@ -153,31 +153,31 @@ export function DashboardShell({
             ))}
           </nav>
 
-          <div className="mt-8 rounded-md border border-[#e7e9ec] bg-[#fafbfc] p-3 text-xs">
-            <p className="font-medium">{overview.tenant.name}</p>
+          <div className="mt-8 rounded-md border border-[#dde5ef] bg-[#f7fafc] p-3 text-xs">
+            <p className="break-words font-medium">{overview.tenant.name}</p>
             <p className="mt-1 text-[#6b7280]">{adapterLabel()}</p>
           </div>
         </aside>
 
         <section className="min-w-0">
-          <header className="border-b border-[#e7e9ec] bg-white/80">
+          <header className="border-b border-[#dde5ef] bg-white/90">
             <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
-              <div>
-                <div className="flex items-center gap-2 text-xs text-[#6b7280]">
-                  <span>{overview.tenant.name}</span>
+              <div className="min-w-0">
+                <div className="flex min-w-0 items-center gap-2 text-xs text-[#6b7280]">
+                  <span className="truncate">{overview.tenant.name}</span>
                   <span>/</span>
-                  <span>{overview.currentApp?.appId ?? "create-app"}</span>
+                  <span className="truncate">{overview.currentApp?.appId ?? "create-app"}</span>
                 </div>
                 <h1 className="mt-1 text-xl font-semibold">{title.title}</h1>
-                <p className="mt-1 text-sm text-[#6b7280]">{title.subtitle}</p>
+                <p className="mt-1 text-sm leading-5 text-[#6b7280]">{title.subtitle}</p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-2">
                 <span className="hidden rounded-md border border-[#d4d7db] bg-white px-3 py-2 text-xs text-[#4b5563] sm:inline-flex">
                   1H 24H 7D 30D
                 </span>
                 <Link
-                  className="inline-flex items-center gap-2 rounded-md bg-[#1a1d21] px-3 py-2 text-sm font-medium text-white"
+                  className="inline-flex items-center gap-2 rounded-md bg-[#14213d] px-3 py-2 text-sm font-medium text-white hover:bg-[#0f1a31]"
                   href={`/apps${selectedAppQuery}`}
                 >
                   <Plus size={15} />

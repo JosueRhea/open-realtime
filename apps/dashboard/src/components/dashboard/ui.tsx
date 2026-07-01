@@ -10,7 +10,9 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-md border border-[#e7e9ec] bg-white p-5 ${className}`}>
+    <section
+      className={`min-w-0 rounded-md border border-[#e2e7ee] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04)] ${className}`}
+    >
       {children}
     </section>
   );
@@ -35,10 +37,10 @@ export function EmptyState({
 
 export function CredentialRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="grid grid-cols-[88px_1fr_auto] items-center gap-2 rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm">
+    <div className="grid min-w-0 grid-cols-[80px_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm sm:grid-cols-[88px_minmax(0,1fr)_auto]">
       <span className="text-xs text-[#6b7280]">{label}</span>
-      <code className="truncate text-xs">{value}</code>
-      <Clipboard size={14} className="text-[#8a9099]" />
+      <code className="min-w-0 break-all text-xs leading-5">{value}</code>
+      <Clipboard size={14} className="shrink-0 text-[#8a9099]" />
     </div>
   );
 }
@@ -53,12 +55,12 @@ export function SetupRow({
   value: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm">
-      <span className="inline-flex items-center gap-2 text-[#6b7280]">
+    <div className="flex min-w-0 items-center justify-between gap-4 rounded-md border border-[#eceef0] bg-[#fafbfc] px-3 py-2 text-sm">
+      <span className="inline-flex min-w-0 items-center gap-2 text-[#6b7280]">
         <Icon size={15} />
         {label}
       </span>
-      <span className="truncate font-medium">{value}</span>
+      <span className="min-w-0 break-words text-right font-medium">{value}</span>
     </div>
   );
 }

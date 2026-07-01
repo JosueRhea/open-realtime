@@ -183,15 +183,8 @@ export function CredentialsView({ overview }: { overview: DashboardOverview }) {
     : "Create an app to generate server credentials.";
 
   return (
-    <section className="grid gap-5 xl:grid-cols-[0.95fr_1fr]">
-      <div className="space-y-5">
-        <Credentials app={app} credentials={selectedCredentials} />
-        <AllAppCredentials
-          apps={overview.apps}
-          credentials={overview.gatewayApps}
-          currentAppId={app?.appId ?? null}
-        />
-      </div>
+    <section className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+      <Credentials app={app} credentials={selectedCredentials} />
       <Panel>
         <h2 className="text-sm font-semibold">Code snippets</h2>
         <CodeBlock label="Client · pusher-js" value={clientCode} />
@@ -520,71 +513,6 @@ function Credentials({
   );
 }
 
-function AllAppCredentials({
-  apps,
-  credentials,
-  currentAppId,
-}: {
-  apps: RealtimeApp[];
-  credentials: GatewayAppCredential[];
-  currentAppId: string | null;
-}) {
-  const credentialByApp = new Map(
-    credentials.map((credential) => [credential.appId, credential]),
-  );
-
-  return (
-    <Panel>
-      <h2 className="text-sm font-semibold">All app credentials</h2>
-      <div className="mt-4 space-y-3">
-        {apps.length === 0 ? (
-          <EmptyState
-            body="Create an app to see its Pusher-compatible credentials."
-            title="No credentials yet"
-          />
-        ) : (
-          apps.map((app) => {
-            const appCredentials = credentialByApp.get(app.appId);
-            const isCurrent = app.appId === currentAppId;
-
-            return (
-              <div
-                className={[
-                  "rounded-md border p-3",
-                  isCurrent
-                    ? "border-[#c7d2fe] bg-[#f8f9ff]"
-                    : "border-[#eceef0] bg-[#fafbfc]",
-                ].join(" ")}
-                key={app.appId}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{app.name}</p>
-                    <p className="mt-1 truncate text-xs text-[#6b7280]">{app.appId}</p>
-                  </div>
-                  <Link
-                    className="shrink-0 rounded-md border border-[#d4d7db] bg-white px-2 py-1 text-xs text-[#4b5563] hover:bg-[#f4f5f6]"
-                    href={`/credentials?app=${encodeURIComponent(app.appId)}`}
-                  >
-                    Select
-                  </Link>
-                </div>
-                <div className="mt-3 space-y-2">
-                  <CredentialRow label="key" value={app.key} />
-                  <CredentialRow
-                    label="secret"
-                    value={appCredentials?.secret ?? app.secretPreview}
-                  />
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </Panel>
-  );
-}
-
 function WebhookPanel({
   compact = false,
   webhooks,
@@ -641,9 +569,9 @@ function EventsPanel({ events }: { events: RealtimeEvent[] }) {
           />
         ) : (
           events.map((event) => (
-            <div className="grid grid-cols-[52px_1fr_auto] gap-3 text-sm" key={event.id}>
+            <div className="grid min-w-0 grid-cols-[52px_minmax(0,1fr)_auto] gap-3 text-sm" key={event.id}>
               <span className="text-[#8a9099]">{event.time}</span>
-              <span className="truncate">{event.channel}</span>
+              <span className="min-w-0 break-all">{event.channel}</span>
               <span className="text-[#6b7280]">{event.status}</span>
             </div>
           ))
@@ -732,7 +660,7 @@ function CodeBlock({ label, value }: { label: string; value: string }) {
       <div className="mb-2 flex items-center justify-between text-xs text-[#6b7280]">
         <span>{label}</span>
       </div>
-      <pre className="overflow-x-auto rounded-md bg-[#0e1117] p-4 text-xs leading-6 text-[#c9d1d9]">
+      <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded-md bg-[#0e1117] p-4 text-xs leading-6 text-[#c9d1d9]">
         <code>{value}</code>
       </pre>
     </div>
