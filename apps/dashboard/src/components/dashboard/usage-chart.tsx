@@ -1,6 +1,5 @@
 "use client";
 
-import type { ComponentProps } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Panel } from "@/components/dashboard/ui";
@@ -74,7 +73,15 @@ export function UsageChart({
                 width={48}
               />
               <ChartTooltip
-                content={<UsageTooltipContent />}
+                cursor={false}
+                shared={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(_, payload) =>
+                      payload?.[0]?.payload?.tooltipLabel ?? ""
+                    }
+                  />
+                }
               />
               <Bar
                 dataKey="value"
@@ -86,20 +93,6 @@ export function UsageChart({
         )}
       </div>
     </Panel>
-  );
-}
-
-function UsageTooltipContent(props: ComponentProps<typeof ChartTooltipContent>) {
-  const value = props.payload?.[0]?.payload?.value ?? props.payload?.[0]?.value;
-  if (Number(value) === 0) return null;
-
-  return (
-    <ChartTooltipContent
-      {...props}
-      labelFormatter={(_, payload) =>
-        payload?.[0]?.payload?.tooltipLabel ?? ""
-      }
-    />
   );
 }
 
