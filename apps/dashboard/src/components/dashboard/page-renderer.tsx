@@ -6,7 +6,6 @@ import { getSelfHostedTenantId, requireDashboardSession } from "@/lib/security";
 import { AuthScreen } from "@/components/dashboard/screens";
 import { DashboardShell } from "@/components/dashboard/shell";
 import {
-  ActivityView,
   AppsView,
   ChannelsView,
   CredentialsView,
@@ -20,7 +19,6 @@ import type { DashboardOverview, UsageRange } from "@/lib/orchestrator/types";
 
 export type DashboardRoute =
   | "overview"
-  | "activity"
   | "channels"
   | "usage"
   | "apps"
@@ -73,8 +71,6 @@ function renderRoute(
   usageRange: UsageRange,
 ) {
   switch (route) {
-    case "activity":
-      return <ActivityView overview={overview} />;
     case "channels":
       return <ChannelsView overview={overview} />;
     case "usage":

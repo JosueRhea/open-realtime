@@ -68,54 +68,6 @@ export function OverviewView({ overview }: { overview: DashboardOverview }) {
   );
 }
 
-export function ActivityView({ overview }: { overview: DashboardOverview }) {
-  return (
-    <Panel>
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold">Streaming event metadata</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Message bodies are not stored, only delivery metadata.
-          </p>
-        </div>
-        <Badge variant="secondary">Powered by Axiom</Badge>
-      </div>
-      <div className="mt-5">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Time</TableHead>
-              <TableHead>Event</TableHead>
-              <TableHead>Channel</TableHead>
-              <TableHead>User</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Meta</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {overview.events.map((event) => (
-              <TableRow key={event.id}>
-                <TableCell className="text-muted-foreground">{event.time}</TableCell>
-                <TableCell className="font-medium">{event.type}</TableCell>
-                <TableCell>{event.channel}</TableCell>
-                <TableCell>{event.user}</TableCell>
-                <TableCell>{event.status}</TableCell>
-                <TableCell className="text-muted-foreground">{event.meta}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        {overview.events.length === 0 ? (
-          <EmptyState
-            body="Connect the gateway and start triggering channel events to populate this stream."
-            title="No events yet"
-          />
-        ) : null}
-      </div>
-    </Panel>
-  );
-}
-
 export function ChannelsView({ overview }: { overview: DashboardOverview }) {
   return (
     <section className="grid gap-5 xl:grid-cols-[1fr_360px]">

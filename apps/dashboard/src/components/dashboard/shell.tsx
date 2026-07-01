@@ -1,5 +1,4 @@
 import {
-  Activity,
   Boxes,
   ChartNoAxesCombined,
   CreditCard,
@@ -25,7 +24,6 @@ const navGroups = [
     label: "MONITOR",
     items: [
       { route: "overview", label: "Overview", href: "/", icon: Gauge },
-      { route: "activity", label: "Realtime Activity", href: "/activity", icon: Activity },
       { route: "channels", label: "Channels", href: "/channels", icon: RadioTower },
       { route: "usage", label: "Usage & Analytics", href: "/usage", icon: ChartNoAxesCombined },
     ],
@@ -51,10 +49,6 @@ const titles: Record<DashboardRoute, { title: string; subtitle: string }> = {
   overview: {
     title: "Overview",
     subtitle: "Health, traffic, and app status for this realtime instance.",
-  },
-  activity: {
-    title: "Realtime Activity",
-    subtitle: "Event metadata stream from channels and webhooks.",
   },
   channels: {
     title: "Channels",
