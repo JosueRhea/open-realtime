@@ -451,11 +451,11 @@ function rangeStartTime(range: UsageRange): string {
 function rangeBucketSize(range: UsageRange): string {
   switch (range) {
     case "1h":
-      return "5m";
+      return "1m";
     case "7d":
-      return "4h";
+      return "1d";
     case "30d":
-      return "12h";
+      return "1d";
     case "24h":
     default:
       return "1h";

@@ -23,7 +23,7 @@ describe("AxiomTelemetryClient", () => {
           return jsonTable(["peak"], [[6]]);
         }
 
-        if (body.apl.includes("by bin(_time, 5m)")) {
+        if (body.apl.includes("by bin(_time, 1m)")) {
           return jsonTable(
             ["_time", "connections", "messages"],
             [["2026-07-01T10:00:00Z"], [3], [9]],
@@ -126,12 +126,12 @@ describe("AxiomTelemetryClient", () => {
     });
     expect(requests[0].body.apl).toContain('["open-realtime"]');
     expect(requests[0].body.apl).toContain('app_id == "app-1"');
-    expect(requests[0].body.apl).toContain("by bin(_time, 5m)");
+    expect(requests[0].body.apl).toContain("by bin(_time, 1m)");
     expect(
       requests.find((request) =>
         request.body.apl.includes("summarize peak=max(connections)"),
       )?.body.apl,
-    ).toContain("by bin(_time, 5m)");
+    ).toContain("by bin(_time, 1m)");
     expect(
       requests
         .filter((request) =>
@@ -200,6 +200,107 @@ describe("AxiomTelemetryClient", () => {
     expect(overview.totals.activeConnections).toBe(2);
     expect(overview.totals.messagesToday).toBe(9);
     expect(overview.totals.peakConnections).toBe(3);
+  });
+
+  it("uses day buckets for day-based usage ranges", async () => {
+    const requests: Array<{ apl: string; startTime: string }> = [];
+    const client = new AxiomTelemetryClient({
+      token: "token",
+      dataset: "open-realtime",
+      fetchFn: async (_url, init) => {
+        const body = JSON.parse(String(init?.body)) as { apl: string; startTime: string };
+        requests.push(body);
+
+        if (body.apl.includes("summarize peak=max(connections)")) {
+          return jsonTable(["peak"], [[4]]);
+        }
+        if (body.apl.includes("summarize connections=countif")) {
+          return jsonTable(
+            ["_time", "connections", "messages"],
+            [["2026-07-01T00:00:00Z"], [4], [12]],
+          );
+        }
+        if (body.apl.includes("webhook.queued")) {
+          return jsonTable(
+            ["_time", "event", "level", "url", "status", "webhook_id", "event_count", "durable"],
+            [[], [], [], [], [], [], [], []],
+          );
+        }
+        if (body.apl.includes("project _time, event")) {
+          return jsonTable(
+            ["_time", "event", "channel", "socket_id", "event_name", "level", "service"],
+            [[], [], [], [], [], [], []],
+          );
+        }
+        if (body.apl.includes("by channel")) {
+          return jsonTable(
+            ["channel", "subscriptions", "messages", "last_activity"],
+            [[], [], [], []],
+          );
+        }
+        if (body.apl.includes("opened=countif")) {
+          return jsonTable(["opened", "closed"], [[4], [0]]);
+        }
+        if (body.apl.includes("webhook.delivery_failed")) {
+          return jsonTable(["failures"], [[0]]);
+        }
+        return jsonTable(["messages"], [[12]]);
+      },
+    });
+
+    await client.overview({
+      tenantId: "tenant-1",
+      appId: "app-1",
+      usageRange: "7d",
+    });
+
+    expect(
+      requests.find((request) => request.apl.includes("summarize connections=countif"))
+        ?.apl,
+    ).toContain("by bin(_time, 1d)");
+    expect(
+      requests.find((request) => request.apl.includes("summarize peak=max(connections)"))
+        ?.apl,
+    ).toContain("by bin(_time, 1d)");
+    expect(
+      requests
+        .filter((request) =>
+          request.apl.includes("summarize connections=countif") ||
+          request.apl.includes("summarize peak=max(connections)") ||
+          request.apl.includes("opened=countif") ||
+          request.apl.includes("event == 'message.delivered'") ||
+          request.apl.includes("event == 'webhook.delivery_failed'"),
+        )
+        .every((request) => request.startTime === "now-7d"),
+    ).toBe(true);
+
+    requests.length = 0;
+
+    await client.overview({
+      tenantId: "tenant-1",
+      appId: "app-1",
+      usageRange: "30d",
+    });
+
+    expect(
+      requests.find((request) => request.apl.includes("summarize connections=countif"))
+        ?.apl,
+    ).toContain("by bin(_time, 1d)");
+    expect(
+      requests.find((request) => request.apl.includes("summarize peak=max(connections)"))
+        ?.apl,
+    ).toContain("by bin(_time, 1d)");
+    expect(
+      requests
+        .filter((request) =>
+          request.apl.includes("summarize connections=countif") ||
+          request.apl.includes("summarize peak=max(connections)") ||
+          request.apl.includes("opened=countif") ||
+          request.apl.includes("event == 'message.delivered'") ||
+          request.apl.includes("event == 'webhook.delivery_failed'"),
+        )
+        .every((request) => request.startTime === "now-30d"),
+    ).toBe(true);
   });
 });
 

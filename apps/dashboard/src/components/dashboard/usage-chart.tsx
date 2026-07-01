@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentProps } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 import { Panel } from "@/components/dashboard/ui";
@@ -74,14 +75,7 @@ export function UsageChart({
               />
               <ChartTooltip
                 cursor={false}
-                shared={false}
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={(_, payload) =>
-                      payload?.[0]?.payload?.tooltipLabel ?? ""
-                    }
-                  />
-                }
+                content={<UsageTooltipContent />}
               />
               <Bar
                 dataKey="value"
@@ -119,8 +113,9 @@ function buildUsageChartData(
       : 0;
 
     return {
+      hasData: bucket.points.length > 0,
       label: formatBucketLabel(bucket.start, range),
-      tooltipLabel: `${formatUsageTooltip(bucket.start)} - ${formatUsageTooltip(bucket.end)}`,
+      tooltipLabel: formatUsageTooltipRange(bucket.start, bucket.end, range),
       value,
     };
   });
@@ -149,11 +144,11 @@ function buildRangeBuckets(range: UsageRange, usage: UsagePoint[]) {
 function rangeBucketConfig(range: UsageRange) {
   switch (range) {
     case "1h":
-      return { bucketCount: 12, bucketMs: 5 * 60 * 1000 };
+      return { bucketCount: 60, bucketMs: 60 * 1000 };
     case "7d":
-      return { bucketCount: 42, bucketMs: 4 * 60 * 60 * 1000 };
+      return { bucketCount: 7, bucketMs: 24 * 60 * 60 * 1000 };
     case "30d":
-      return { bucketCount: 60, bucketMs: 12 * 60 * 60 * 1000 };
+      return { bucketCount: 30, bucketMs: 24 * 60 * 60 * 1000 };
     case "24h":
     default:
       return { bucketCount: 24, bucketMs: 60 * 60 * 1000 };
@@ -165,8 +160,7 @@ function alignRangeEnd(anchor: number, range: UsageRange, bucketMs: number) {
 
   if (range === "1h") {
     date.setUTCSeconds(0, 0);
-    const minutes = date.getUTCMinutes();
-    date.setUTCMinutes(Math.floor(minutes / 5) * 5 + 5);
+    date.setUTCMinutes(date.getUTCMinutes() + 1);
     return date.getTime();
   }
 
@@ -178,12 +172,7 @@ function aggregateBucketValue(
   metric: "connections" | "messages",
 ) {
   const sum = points.reduce((total, point) => total + point[metric], 0);
-
-  if (metric === "messages") {
-    return sum;
-  }
-
-  return Math.round(sum / points.length);
+  return sum;
 }
 
 function formatBucketLabel(time: number, range: UsageRange) {
@@ -193,6 +182,7 @@ function formatBucketLabel(time: number, range: UsageRange) {
     return new Intl.DateTimeFormat("en", {
       day: "2-digit",
       month: "short",
+      timeZone: "UTC",
     }).format(date);
   }
 
@@ -202,11 +192,45 @@ function formatBucketLabel(time: number, range: UsageRange) {
   ].join(":");
 }
 
+function formatUsageTooltipRange(start: number, end: number, range: UsageRange) {
+  if (range === "7d" || range === "30d") {
+    return formatUsageDay(start);
+  }
+
+  return `${formatUsageTooltip(start)} - ${formatUsageTooltip(end)}`;
+}
+
+function formatUsageDay(time: number) {
+  return new Intl.DateTimeFormat("en", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "UTC",
+  }).format(new Date(time));
+}
+
 function formatUsageTooltip(time: number) {
   return new Intl.DateTimeFormat("en", {
     day: "2-digit",
     hour: "2-digit",
     minute: "2-digit",
     month: "short",
+    timeZone: "UTC",
   }).format(new Date(time));
+}
+
+function UsageTooltipContent(props: ComponentProps<typeof ChartTooltipContent>) {
+  const hasData = props.payload?.[0]?.payload?.hasData;
+
+  if (!hasData) {
+    return null;
+  }
+
+  return (
+    <ChartTooltipContent
+      {...props}
+      labelFormatter={(_, payload) =>
+        payload?.[0]?.payload?.tooltipLabel ?? ""
+      }
+    />
+  );
 }
