@@ -49,9 +49,18 @@ describe("UsageReporter", () => {
       tenantId: "tenant-1",
       appId: "app",
       connections: 1,
+      connectionDelta: 0,
       messages: 1,
       webhookFailures: 0,
     });
+    expect(reporter.usage).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          connections: 1,
+          connectionDelta: 1,
+        }),
+      ]),
+    );
     expect(reporter.usage.at(-1)?.hour).toMatch(
       /^\d{4}-\d{2}-\d{2}T\d{2}:00:00\.000Z$/,
     );
@@ -90,8 +99,17 @@ describe("UsageReporter", () => {
 
     expect(reporter.usage.at(-1)).toMatchObject({
       connections: 0,
+      connectionDelta: 0,
       messages: 1,
     });
+    expect(reporter.usage).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          connections: 0,
+          connectionDelta: -1,
+        }),
+      ]),
+    );
     expect(reporter.channels.at(-1)).toMatchObject({
       name: "presence-room",
       subscriptions: 0,

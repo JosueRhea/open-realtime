@@ -394,6 +394,7 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
     this.assertAppBelongsToTenant(input.tenantId, input.appId);
 
     const id = `${input.tenantId}:${input.appId}:${input.hour}`;
+    const reportedConnections = this.updateAppUsage(input);
 
     this.db
       .prepare(
@@ -410,27 +411,49 @@ export class SqliteOrchestratorStore implements OrchestratorStore {
         input.tenantId,
         input.appId,
         input.hour,
-        input.connections,
+        reportedConnections,
         input.messages,
         input.webhookFailures ?? 0,
       );
-
-    this.db
-      .prepare(
-        `update realtime_apps
-         set active_connections = ?, messages_today = ?
-         where tenant_id = ? and app_id = ?`,
-      )
-      .run(input.connections, input.messages, input.tenantId, input.appId);
 
     return {
       tenantId: input.tenantId,
       appId: input.appId,
       hour: input.hour,
-      connections: input.connections,
+      connections: reportedConnections,
       messages: input.messages,
       webhookFailures: input.webhookFailures ?? 0,
     };
+  }
+
+  private updateAppUsage(input: UsageReportInput): number {
+    if (typeof input.connectionDelta === "number") {
+      this.db
+        .prepare(
+          `update realtime_apps
+           set active_connections = max(0, active_connections + ?),
+               messages_today = ?
+           where tenant_id = ? and app_id = ?`,
+        )
+        .run(input.connectionDelta, input.messages, input.tenantId, input.appId);
+    } else {
+      this.db
+        .prepare(
+          `update realtime_apps
+           set active_connections = ?, messages_today = ?
+           where tenant_id = ? and app_id = ?`,
+        )
+        .run(input.connections, input.messages, input.tenantId, input.appId);
+    }
+
+    const row = this.db
+      .prepare(
+        `select active_connections from realtime_apps
+         where tenant_id = ? and app_id = ?`,
+      )
+      .get(input.tenantId, input.appId) as Pick<AppRow, "active_connections"> | undefined;
+
+    return row?.active_connections ?? input.connections;
   }
 
   reportEvent(input: EventReportInput): RealtimeEvent {

@@ -330,27 +330,45 @@ export class PostgresOrchestratorStore implements AsyncOrchestratorStore {
   async reportUsage(input: UsageReportInput): Promise<UsagePoint> {
     await this.assertAppBelongsToTenant(input.tenantId, input.appId);
     const id = `${input.tenantId}:${input.appId}:${input.hour}`;
+    const reportedConnections = await this.updateAppUsage(input);
     await this.sql`
       insert into usage_hourly
       (id, tenant_id, app_id, hour, connections, messages, webhook_failures)
-      values (${id}, ${input.tenantId}, ${input.appId}, ${input.hour}, ${input.connections}, ${input.messages}, ${input.webhookFailures ?? 0})
+      values (${id}, ${input.tenantId}, ${input.appId}, ${input.hour}, ${reportedConnections}, ${input.messages}, ${input.webhookFailures ?? 0})
       on conflict(id) do update set
         connections = excluded.connections,
         messages = excluded.messages,
         webhook_failures = excluded.webhook_failures
     `;
-    await this.sql`
-      update realtime_apps set active_connections = ${input.connections}, messages_today = ${input.messages}
-      where tenant_id = ${input.tenantId} and app_id = ${input.appId}
-    `;
     return {
       tenantId: input.tenantId,
       appId: input.appId,
       hour: input.hour,
-      connections: input.connections,
+      connections: reportedConnections,
       messages: input.messages,
       webhookFailures: input.webhookFailures ?? 0,
     };
+  }
+
+  private async updateAppUsage(input: UsageReportInput): Promise<number> {
+    const rows =
+      typeof input.connectionDelta === "number"
+        ? await this.sql<Pick<AppRow, "active_connections">[]>`
+            update realtime_apps
+            set active_connections = greatest(0, active_connections + ${input.connectionDelta}),
+                messages_today = ${input.messages}
+            where tenant_id = ${input.tenantId} and app_id = ${input.appId}
+            returning active_connections
+          `
+        : await this.sql<Pick<AppRow, "active_connections">[]>`
+            update realtime_apps
+            set active_connections = ${input.connections},
+                messages_today = ${input.messages}
+            where tenant_id = ${input.tenantId} and app_id = ${input.appId}
+            returning active_connections
+          `;
+
+    return rows[0]?.active_connections ?? input.connections;
   }
 
   async reportEvent(input: EventReportInput): Promise<RealtimeEvent> {

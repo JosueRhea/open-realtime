@@ -43,7 +43,7 @@ export class UsageReporter {
   connectionOpened(app: TenantApp): void {
     this.counters(app).activeConnections += 1;
     void Promise.all([
-      this.flushApp(app),
+      this.flushApp(app, 1),
       this.reportLifecycleEvent(app, "connection.opened", "connection", "gateway"),
     ]).catch(() => {});
   }
@@ -56,7 +56,7 @@ export class UsageReporter {
       this.unsubscribed(app, subscription.channel);
     }
     void Promise.all([
-      this.flushApp(app),
+      this.flushApp(app, -1),
       this.reportLifecycleEvent(
         app,
         "connection.closed",
@@ -159,8 +159,10 @@ export class UsageReporter {
     return created;
   }
 
-  private async flushApp(app: TenantApp): Promise<void> {
-    await this.reporter.reportUsage(toUsageSnapshot(this.counters(app))).catch(() => {});
+  private async flushApp(app: TenantApp, connectionDelta = 0): Promise<void> {
+    await this.reporter
+      .reportUsage(toUsageSnapshotWithDelta(this.counters(app), connectionDelta))
+      .catch(() => {});
   }
 
   private async flushChannel(app: TenantApp, channel: string): Promise<void> {
@@ -189,11 +191,16 @@ export class UsageReporter {
 }
 
 function toUsageSnapshot(counters: AppCounters): UsageSnapshot {
+  return toUsageSnapshotWithDelta(counters, 0);
+}
+
+function toUsageSnapshotWithDelta(counters: AppCounters, connectionDelta?: number): UsageSnapshot {
   return {
     tenantId: counters.tenantId,
     appId: counters.appId,
     hour: currentHour(),
     connections: counters.activeConnections,
+    connectionDelta,
     messages: counters.messages,
     webhookFailures: counters.webhookFailures,
   };

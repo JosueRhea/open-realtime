@@ -11,6 +11,10 @@ export async function POST(request: Request) {
     const appId = requireString(body.appId, "appId");
     const hour = requireString(body.hour, "hour");
     const connections = requireNumber(body.connections, "connections");
+    const connectionDelta =
+      typeof body.connectionDelta === "number" && Number.isFinite(body.connectionDelta)
+        ? body.connectionDelta
+        : undefined;
     const messages = requireNumber(body.messages, "messages");
     const webhookFailures =
       typeof body.webhookFailures === "number" ? body.webhookFailures : 0;
@@ -20,6 +24,7 @@ export async function POST(request: Request) {
       appId,
       hour,
       connections,
+      connectionDelta,
       messages,
       webhookFailures,
     });

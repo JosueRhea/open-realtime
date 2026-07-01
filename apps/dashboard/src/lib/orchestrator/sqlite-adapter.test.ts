@@ -176,4 +176,41 @@ describe("SqliteOrchestratorStore", () => {
     expect(overview.usage[0]?.hour).toBe("2026-06-07T00:00:00.000Z");
     expect(overview.usage.at(-1)?.hour).toBe("2026-06-30T00:00:00.000Z");
   });
+
+  it("aggregates connection deltas instead of trusting one gateway instance", () => {
+    const store = createStore();
+    const app = store.createApp({ tenantId: "tenant-1", name: "Production" });
+
+    store.reportUsage({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      hour: "2026-06-30T12:00:00.000Z",
+      connections: 1,
+      connectionDelta: 1,
+      messages: 0,
+    });
+    store.reportUsage({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      hour: "2026-06-30T12:00:00.000Z",
+      connections: 1,
+      connectionDelta: 1,
+      messages: 0,
+    });
+    store.reportUsage({
+      tenantId: "tenant-1",
+      appId: app.appId,
+      hour: "2026-06-30T12:00:00.000Z",
+      connections: 0,
+      connectionDelta: -1,
+      messages: 0,
+    });
+
+    const overview = store.getOverview("tenant-1", app.appId);
+
+    expect(overview.totals.activeConnections).toBe(1);
+    expect(overview.usage).toEqual([
+      expect.objectContaining({ connections: 1 }),
+    ]);
+  });
 });

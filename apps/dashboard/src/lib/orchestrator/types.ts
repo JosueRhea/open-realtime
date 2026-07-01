@@ -106,6 +106,7 @@ export type UsageReportInput = {
   appId: string;
   hour: string;
   connections: number;
+  connectionDelta?: number;
   messages: number;
   webhookFailures?: number;
 };
