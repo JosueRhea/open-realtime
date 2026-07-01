@@ -85,6 +85,18 @@ export async function signInAction(formData: FormData) {
   redirect("/");
 }
 
+export async function signOutAction() {
+  await ensureAuthSchema();
+
+  const result = await auth.api.signOut({
+    headers: await headers(),
+    returnHeaders: true,
+  });
+
+  await applyAuthCookies(result.headers);
+  redirect("/");
+}
+
 async function applyAuthCookies(responseHeaders: Headers) {
   const cookieStore = await cookies();
   const setCookieHeader = responseHeaders.get("set-cookie");

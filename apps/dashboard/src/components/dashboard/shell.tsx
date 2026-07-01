@@ -4,6 +4,7 @@ import {
   CreditCard,
   Gauge,
   KeyRound,
+  LogOut,
   Plus,
   RadioTower,
   Users,
@@ -12,6 +13,7 @@ import {
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { signOutAction } from "@/app/actions";
 import { AppSwitcher } from "@/components/dashboard/app-switcher";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -170,13 +172,19 @@ export function DashboardShell({
                 <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{title.subtitle}</p>
               </div>
 
-              <div className="flex items-center gap-2 md:justify-end">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center md:justify-end">
                 <Button asChild className="w-full rounded-md sm:w-auto">
                   <Link href={`/apps${selectedAppQuery}`}>
                     <Plus size={15} />
                     Create app
                   </Link>
                 </Button>
+                <form action={signOutAction}>
+                  <Button className="w-full rounded-md sm:w-auto" size="sm" type="submit" variant="outline">
+                    <LogOut size={15} />
+                    Logout
+                  </Button>
+                </form>
               </div>
             </div>
           </header>
